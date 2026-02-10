@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lawn Mowing Rotorua | Beezkneez Lawns & Property Care</title>
+  <meta name="description" content="Reliable lawn mowing and garden maintenance in Rotorua. Owner-operated, honest, friendly service. Free quotes available.">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --green-dark: #1e5631;
+      --green-mid: #4cb050;
+      --green-light: #7ed957;
+      --green-pale: #e8f5e9;
+      --yellow: #f5c518;
+      --yellow-light: #fef9e7;
+      --dark: #1a1a1a;
+      --gray: #5a5a5a;
+      --light: #f8faf8;
+      --white: #ffffff;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    .animate-in {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .animate-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 1.5rem 2rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    header.scrolled {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      padding: 0.5rem 2rem;
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    header.scrolled .header-container {
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+
+    .logo img {
+      height: 150px;
+      width: auto;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    header.scrolled .logo img {
+      height: 60px;
+    }
+
+    .logo:hover img {
+      transform: rotate(-3deg) scale(1.02);
+    }
+
+    .header-buttons {
+      margin-top: 0.5rem;
+      transition: margin 0.4s ease;
+    }
+
+    header.scrolled .header-buttons {
+      margin-top: 0;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.75rem;
+      border-radius: 100px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green-mid) 0%, var(--green-dark) 100%);
+      color: white;
+      box-shadow: 0 4px 15px rgba(45, 90, 71, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(45, 90, 71, 0.4);
+    }
+
+    .btn-secondary {
+      background: var(--yellow);
+      color: var(--green-dark);
+      box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(251, 191, 36, 0.4);
+    }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      background:
+        linear-gradient(135deg, rgba(220, 252, 231, 0.92) 0%, rgba(254, 243, 199, 0.88) 50%, rgba(255, 255, 255, 0.9) 100%),
+        url('pexels-pixmike-413195.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 80%;
+      height: 150%;
+      background: radial-gradient(circle, rgba(74, 222, 128, 0.25) 0%, transparent 70%);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .hero-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: var(--white);
+      padding: 0.5rem 1.25rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--green-mid);
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4rem);
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 1.5rem;
+      line-height: 1.1;
+      animation: fadeInUp 0.6s ease 0.1s forwards;
+      opacity: 0;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--green-light) 0%, var(--yellow) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-tagline {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--green-mid);
+      margin-bottom: 1.5rem;
+      animation: fadeInUp 0.6s ease 0.15s forwards;
+      opacity: 0;
+    }
+
+    .hero-intro {
+      font-size: 1.25rem;
+      color: var(--gray);
+      margin-bottom: 2.5rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      animation: fadeInUp 0.6s ease 0.2s forwards;
+      opacity: 0;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeInUp 0.6s ease 0.3s forwards;
+      opacity: 0;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: float 2s ease-in-out infinite;
+    }
+
+    .scroll-indicator span {
+      display: block;
+      width: 2px;
+      height: 30px;
+      background: linear-gradient(to bottom, var(--green-mid), transparent);
+      margin: 0 auto;
+    }
+
+    /* Services */
+    .services {
+      padding: 6rem 2rem;
+      background: var(--white);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 4rem;
+    }
+
+    .section-tag {
+      display: inline-block;
+      background: var(--green-pale);
+      color: var(--green-mid);
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 700;
+      color: var(--green-dark);
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .service-card {
+      background: var(--light);
+      padding: 2rem;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: default;
+    }
+
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--green-light), var(--yellow));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+
+    .service-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .service-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .service-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 1.25rem;
+      color: white;
+    }
+
+    .service-card h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--green-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .service-card p {
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+
+    /* Why Choose */
+    .why-choose {
+      padding: 6rem 2rem;
+      background:
+        linear-gradient(180deg, rgba(26, 61, 46, 0.93) 0%, rgba(45, 90, 71, 0.93) 100%),
+        url('pexels-pixabay-53615.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: white;
+    }
+
+    .why-choose .section-tag {
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--green-light);
+    }
+
+    .why-choose .section-title {
+      color: white;
+    }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 2rem;
+    }
+
+    .why-item {
+      text-align: center;
+      padding: 2rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .why-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-5px);
+    }
+
+    .why-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, var(--green-light), var(--yellow));
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      margin: 0 auto 1.25rem;
+      transition: transform 0.3s ease;
+      color: var(--green-dark);
+    }
+
+    .why-item:hover .why-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .why-item h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .why-item p {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 0.95rem;
+    }
+
+    /* About */
+    .about {
+      padding: 6rem 2rem;
+      background: var(--green-pale);
+    }
+
+    .about-wrapper {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .about-photo {
+      width: 280px;
+      height: 280px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    }
+
+    .about-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    .about-text .section-tag {
+      margin-bottom: 0.75rem;
+    }
+
+    .about-text .section-title {
+      margin-bottom: 1.25rem;
+    }
+
+    .about-text p {
+      color: var(--gray);
+      font-size: 1.05rem;
+      margin-bottom: 1rem;
+    }
+
+    .about-text .btn {
+      margin-top: 0.5rem;
+    }
+
+    @media (max-width: 700px) {
+      .about-wrapper {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .about-photo {
+        width: 200px;
+        height: 200px;
+        margin: 0 auto;
+      }
+    }
+
+    /* Area */
+    .area {
+      padding: 5rem 2rem;
+      background:
+        linear-gradient(180deg, rgba(248, 250, 252, 0.95) 0%, rgba(248, 250, 252, 0.92) 100%),
+        url('pexels-rovenimages-com-344613-949584.jpg');
+      background-size: cover;
+      background-position: center;
+      text-align: center;
+    }
+
+    .area-content {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .area h2 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 1rem;
+    }
+
+    .area p {
+      color: var(--gray);
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .suburb-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .suburb-tag {
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 100px;
+      font-size: 0.9rem;
+      color: var(--green-mid);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    .suburb-tag:hover {
+      background: var(--green-mid);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    /* Contact */
+    .contact {
+      padding: 6rem 2rem;
+      background: var(--white);
+    }
+
+    .contact-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    @media (max-width: 800px) {
+      .contact-wrapper {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+    }
+
+    .contact-info h2 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 1rem;
+    }
+
+    .contact-info > p {
+      color: var(--gray);
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    .contact-methods {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .contact-method {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      background: var(--light);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .contact-method:hover {
+      background: var(--green-pale);
+      transform: translateX(10px);
+    }
+
+    .contact-method-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      color: white;
+    }
+
+    .contact-method a {
+      color: var(--green-dark);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .contact-method span {
+      display: block;
+      color: var(--gray);
+      font-size: 0.85rem;
+      font-weight: 400;
+    }
+
+    .contact-form-container {
+      background: var(--light);
+      padding: 2.5rem;
+      border-radius: 24px;
+    }
+
+    .contact-form-container h3 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--green-dark);
+      margin-bottom: 0.5rem;
+    }
+
+    .contact-form-container > p {
+      color: var(--gray);
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      color: var(--dark);
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid transparent;
+      background: var(--white);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: all 0.3s ease;
+    }
+
+    .custom-select {
+      position: relative;
+    }
+
+    .custom-select-trigger {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid transparent;
+      background: var(--white);
+      border-radius: 12px;
+      font-size: 1rem;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+      color: var(--gray);
+    }
+
+    .custom-select-trigger.has-value {
+      color: var(--dark);
+    }
+
+    .custom-select-trigger i {
+      font-size: 0.75rem;
+      transition: transform 0.3s ease;
+      color: var(--gray);
+    }
+
+    .custom-select.open .custom-select-trigger {
+      border-color: var(--green-light);
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.15);
+    }
+
+    .custom-select.open .custom-select-trigger i {
+      transform: rotate(180deg);
+    }
+
+    .custom-select-options {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+      overflow: hidden;
+      z-index: 10;
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .custom-select.open .custom-select-options {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .custom-select-option {
+      padding: 0.85rem 1rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.2s ease;
+    }
+
+    .custom-select-option i {
+      width: 20px;
+      text-align: center;
+      color: var(--green-mid);
+    }
+
+    .custom-select-option:hover {
+      background: var(--green-pale);
+      color: var(--green-dark);
+    }
+
+    .custom-select-option.selected {
+      background: var(--green-mid);
+      color: white;
+    }
+
+    .custom-select-option.selected i {
+      color: white;
+    }
+
+    .form-group {
+      position: relative;
+    }
+
+    .address-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+      overflow: hidden;
+      z-index: 10;
+      display: none;
+    }
+
+    .address-suggestions.active {
+      display: block;
+    }
+
+    .address-suggestion {
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      transition: background 0.2s ease;
+    }
+
+    .address-suggestion i {
+      color: var(--green-mid);
+      font-size: 0.8rem;
+    }
+
+    .address-suggestion:hover {
+      background: var(--green-pale);
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--green-light);
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.15);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .contact-form-container .btn {
+      width: 100%;
+      font-size: 1rem;
+      padding: 1rem 2rem;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--dark);
+      color: rgba(255, 255, 255, 0.7);
+      padding: 3rem 2rem;
+    }
+
+    .footer-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .footer-brand img {
+      height: 50px;
+      width: auto;
+    }
+
+    .footer-brand span {
+      font-weight: 600;
+      color: white;
+    }
+
+    .footer-copy {
+      font-size: 0.9rem;
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      header {
+        padding: 1rem;
+      }
+
+      .logo img {
+        height: 120px;
+      }
+
+      header.scrolled {
+        padding: 0.5rem 1rem;
+      }
+
+      header.scrolled .logo img {
+        height: 50px;
+      }
+
+      .btn {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.85rem;
+      }
+
+      .hero {
+        min-height: auto;
+        padding: 8rem 1rem 4rem;
+      }
+
+      .scroll-indicator {
+        display: none;
+      }
+
+      .services, .why-choose, .contact {
+        padding: 4rem 1rem;
+      }
+
+      .footer-container {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header id="header">
+    <div class="header-container">
+      <a href="#" class="logo">
+        <img src="beezkneez-logo.png" alt="Beezkneez Logo">
+      </a>
+      <div class="header-buttons">
+        <a href="tel:+64221924346" class="btn btn-secondary">Call Now</a>
+        <a href="#contact" class="btn btn-primary">Free Quote</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-container">
+      <div class="hero-badge">Rotorua's Local Lawn Care</div>
+      <h1>Keeping your property<br><span>looking sweet!</span></h1>
+      <p class="hero-tagline">Your lawn deserves the bee's knees</p>
+      <p class="hero-intro">
+        Hey, I'm Byron — a local Rotorua dad running a small, owner-operated lawn and property care service. I turn up when I say I will and do a solid, honest job.
+      </p>
+      <div class="hero-buttons">
+        <a href="tel:+64221924346" class="btn btn-secondary">Call 022 192 4346</a>
+        <a href="#contact" class="btn btn-primary">Get a Free Quote</a>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <span></span>
+    </div>
+  </section>
+
+  <!-- Services -->
+  <section class="services" id="services">
+    <div class="container">
+      <div class="section-header animate-in">
+        <div class="section-tag">Services</div>
+        <h2 class="section-title">What I can help with</h2>
+      </div>
+      <div class="services-grid">
+        <div class="service-card animate-in">
+          <div class="service-icon"><i class="fas fa-leaf"></i></div>
+          <h3>Lawn Mowing</h3>
+          <p>Regular mowing for small to medium residential sections. Consistent, reliable service you can count on.</p>
+        </div>
+        <div class="service-card animate-in">
+          <div class="service-icon"><i class="fas fa-seedling"></i></div>
+          <h3>Garden Tidy-Ups</h3>
+          <p>Weed removal, garden bed maintenance, and general clean-ups to keep your property looking fresh.</p>
+        </div>
+        <div class="service-card animate-in">
+          <div class="service-icon"><i class="fas fa-cut"></i></div>
+          <h3>Hedge Trimming</h3>
+          <p>Keep your hedges neat and tidy with regular trimming and shaping throughout the year.</p>
+        </div>
+        <div class="service-card animate-in">
+          <div class="service-icon"><i class="fas fa-home"></i></div>
+          <h3>Gutter Cleaning</h3>
+          <p>Clear out leaves and debris to keep your gutters flowing properly and protect your home.</p>
+        </div>
+        <div class="service-card animate-in">
+          <div class="service-icon"><i class="fas fa-wrench"></i></div>
+          <h3>General Maintenance</h3>
+          <p>Outdoor odd jobs and property maintenance — just ask what you need, happy to help.</p>
+        </div>
+        <div class="service-card service-card-coming animate-in">
+          <div class="service-icon service-icon-coming"><i class="fas fa-plus"></i></div>
+          <h3>More Coming Soon</h3>
+          <p>As the business grows, so will the services. Got something specific you need? Just ask — I might already be able to help.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why Choose -->
+  <section class="why-choose">
+    <div class="container">
+      <div class="section-header animate-in">
+        <div class="section-tag">Why Beezkneez</div>
+        <h2 class="section-title">Simple, honest service</h2>
+      </div>
+      <div class="why-grid">
+        <div class="why-item animate-in">
+          <div class="why-icon"><i class="fas fa-user"></i></div>
+          <h3>Owner-Operated</h3>
+          <p>You deal with me directly — no random workers showing up at your place.</p>
+        </div>
+        <div class="why-item animate-in">
+          <div class="why-icon"><i class="fas fa-clock"></i></div>
+          <h3>Reliable</h3>
+          <p>I turn up when I say I will. Consistent, dependable, no ghosting.</p>
+        </div>
+        <div class="why-item animate-in">
+          <div class="why-icon"><i class="fas fa-dollar-sign"></i></div>
+          <h3>Fair Pricing</h3>
+          <p>Honest, upfront quotes with no hidden surprises or sneaky charges.</p>
+        </div>
+        <div class="why-item animate-in">
+          <div class="why-icon"><i class="fas fa-handshake"></i></div>
+          <h3>Easy to Deal With</h3>
+          <p>Friendly, no pressure, just good honest work from a local.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="about">
+    <div class="container">
+      <div class="about-wrapper animate-in">
+        <div class="about-photo">
+          <img src="profile.jpg" alt="Byron — Beezkneez Lawns">
+        </div>
+        <div class="about-text">
+          <div class="section-tag">About Me</div>
+          <h2 class="section-title">A bit about me</h2>
+          <p>I'm a local Rotorua dad who loves being outdoors, helping people, and getting stuck into the garden. After years in web development, I wanted something just as rewarding but with the flexibility to be there for my kids — coaching their soccer teams and not missing the stuff that matters.</p>
+          <p>That's how Beezkneez was born. I get to do work I genuinely enjoy, help keep my community looking sharp, and still be the dad I want to be. If you need someone reliable who actually cares about doing a good job — give me a shout.</p>
+          <a href="#contact" class="btn btn-primary">Get in Touch</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Service Area -->
+  <section class="area">
+    <div class="area-content animate-in">
+      <h2>Service Area</h2>
+      <p>I service Rotorua and surrounding suburbs</p>
+      <div class="suburb-tags">
+        <span class="suburb-tag">Lynmore</span>
+        <span class="suburb-tag">Owhata</span>
+        <span class="suburb-tag">Springfield</span>
+        <span class="suburb-tag">Holdens Bay</span>
+        <span class="suburb-tag">Glenholme</span>
+        <span class="suburb-tag">Pukehangi</span>
+        <span class="suburb-tag">Tihi-Otonga</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="contact-wrapper">
+        <div class="contact-info animate-in">
+          <h2>Let's chat</h2>
+          <p>Get in touch for a free, no-obligation quote. I'll get back to you as soon as I can.</p>
+
+          <div class="contact-methods">
+            <div class="contact-method">
+              <div class="contact-method-icon"><i class="fas fa-phone"></i></div>
+              <div>
+                <a href="tel:+64221924346">022 192 4346</a>
+                <span>Give me a call or text</span>
+              </div>
+            </div>
+            <div class="contact-method">
+              <div class="contact-method-icon"><i class="fas fa-envelope"></i></div>
+              <div>
+                <a href="mailto:byron@beezkneez.nz">byron@beezkneez.nz</a>
+                <span>Email anytime</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="contact-form-container animate-in">
+          <h3>Send a message</h3>
+          <p>Free quotes, no obligation</p>
+          <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+            <input type="hidden" name="form-name" value="contact">
+            <div style="display:none">
+              <label>Don't fill this out: <input name="bot-field"></label>
+            </div>
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" name="phone" placeholder="021 xxx xxxx" required>
+            </div>
+            <div class="form-group">
+              <label>Service</label>
+              <input type="hidden" id="service" name="service" required>
+              <div class="custom-select" id="customSelect">
+                <div class="custom-select-trigger" id="selectTrigger">
+                  <span id="selectText">What do you need help with?</span>
+                  <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="custom-select-options" id="selectOptions">
+                  <div class="custom-select-option" data-value="Lawn Mowing"><i class="fas fa-leaf"></i> Lawn Mowing</div>
+                  <div class="custom-select-option" data-value="Garden Tidy-Up"><i class="fas fa-seedling"></i> Garden Tidy-Up</div>
+                  <div class="custom-select-option" data-value="Hedge Trimming"><i class="fas fa-cut"></i> Hedge Trimming</div>
+                  <div class="custom-select-option" data-value="Gutter Cleaning"><i class="fas fa-home"></i> Gutter Cleaning</div>
+                  <div class="custom-select-option" data-value="General Maintenance"><i class="fas fa-wrench"></i> General Maintenance</div>
+                  <div class="custom-select-option" data-value="Other"><i class="fas fa-ellipsis-h"></i> Other</div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="address">Address / Suburb</label>
+              <input type="text" id="address" name="address" placeholder="Start typing your address..." autocomplete="off">
+              <div class="address-suggestions" id="addressSuggestions"></div>
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" placeholder="Tell me a bit about what you need help with..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Send Message</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-container">
+      <div class="footer-brand">
+        <img src="beezkneez-logo.png" alt="Beezkneez">
+        <span>Beezkneez Lawns & Property Care</span>
+      </div>
+      <p class="footer-copy">&copy; 2026 Beezkneez. Rotorua, New Zealand.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Header scroll effect
+    const header = document.getElementById('header');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+    });
+
+    // Scroll animations
+    const animateElements = document.querySelectorAll('.animate-in');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add('visible');
+          }, index * 100);
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
+    });
+
+    animateElements.forEach(el => observer.observe(el));
+
+    // Custom dropdown
+    const customSelect = document.getElementById('customSelect');
+    const selectTrigger = document.getElementById('selectTrigger');
+    const selectText = document.getElementById('selectText');
+    const selectOptions = document.getElementById('selectOptions');
+    const hiddenInput = document.getElementById('service');
+
+    selectTrigger.addEventListener('click', () => {
+      customSelect.classList.toggle('open');
+    });
+
+    selectOptions.querySelectorAll('.custom-select-option').forEach(option => {
+      option.addEventListener('click', () => {
+        selectOptions.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        selectText.textContent = option.dataset.value;
+        selectTrigger.classList.add('has-value');
+        hiddenInput.value = option.dataset.value;
+        customSelect.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!customSelect.contains(e.target)) {
+        customSelect.classList.remove('open');
+      }
+    });
+
+    // Address autocomplete via Nominatim (filtered to Rotorua area)
+    const addressInput = document.getElementById('address');
+    const suggestionsBox = document.getElementById('addressSuggestions');
+    let debounceTimer;
+
+    addressInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer);
+      const query = addressInput.value.trim();
+      if (query.length < 3) {
+        suggestionsBox.classList.remove('active');
+        suggestionsBox.innerHTML = '';
+        return;
+      }
+      debounceTimer = setTimeout(() => fetchSuggestions(query), 400);
+    });
+
+    async function fetchSuggestions(query) {
+      const bbox = '176.15,-38.22,176.35,-38.08';
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query + ', Rotorua')}&format=json&addressdetails=1&limit=5&viewbox=${bbox}&bounded=1&countrycodes=nz`;
+      try {
+        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+        const data = await res.json();
+        if (data.length === 0) {
+          suggestionsBox.classList.remove('active');
+          suggestionsBox.innerHTML = '';
+          return;
+        }
+        suggestionsBox.innerHTML = data.map(item =>
+          `<div class="address-suggestion" data-address="${item.display_name}"><i class="fas fa-map-marker-alt"></i>${item.display_name}</div>`
+        ).join('');
+        suggestionsBox.classList.add('active');
+
+        suggestionsBox.querySelectorAll('.address-suggestion').forEach(el => {
+          el.addEventListener('click', () => {
+            addressInput.value = el.dataset.address;
+            suggestionsBox.classList.remove('active');
+            suggestionsBox.innerHTML = '';
+          });
+        });
+      } catch (e) {
+        suggestionsBox.classList.remove('active');
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!addressInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+        suggestionsBox.classList.remove('active');
+      }
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
