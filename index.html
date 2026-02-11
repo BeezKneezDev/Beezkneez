@@ -1169,11 +1169,11 @@
         <div class="contact-form-container animate-in">
           <h3>Send a message</h3>
           <p>Free quotes, no obligation</p>
-          <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
-            <input type="hidden" name="form-name" value="contact">
-            <div style="display:none">
-              <label>Don't fill this out: <input name="bot-field"></label>
-            </div>
+          <form action="https://api.web3forms.com/submit" method="POST">
+            <input type="hidden" name="access_key" value="52043fba-b3fc-41a1-a07e-6e0edf31b14d">
+            <input type="hidden" name="redirect" value="https://beezkneez.nz/">
+            <input type="hidden" name="subject" value="New enquiry from beezkneez.nz">
+            <input type="checkbox" name="botcheck" class="hidden" style="display:none">
             <div class="form-group">
               <label for="name">Name</label>
               <input type="text" id="name" name="name" placeholder="Your name" required>
