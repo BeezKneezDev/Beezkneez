@@ -978,6 +978,28 @@
       }
     }
 
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--green-dark);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+      z-index: 9999;
+      opacity: 0;
+      transition: all 0.4s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
     @media (max-width: 470px) {
       .header-container {
         align-items: center;
@@ -1169,9 +1191,8 @@
         <div class="contact-form-container animate-in">
           <h3>Send a message</h3>
           <p>Free quotes, no obligation</p>
-          <form action="https://api.web3forms.com/submit" method="POST">
+          <form id="contactForm" action="https://api.web3forms.com/submit" method="POST">
             <input type="hidden" name="access_key" value="52043fba-b3fc-41a1-a07e-6e0edf31b14d">
-            <input type="hidden" name="redirect" value="https://beezkneez.nz/">
             <input type="hidden" name="subject" value="New enquiry from beezkneez.nz">
             <input type="checkbox" name="botcheck" class="hidden" style="display:none">
             <div class="form-group">
@@ -1333,6 +1354,45 @@
         suggestionsBox.classList.remove('active');
       }
     });
+
+    // Form submission
+    const contactForm = document.getElementById('contactForm');
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = contactForm.querySelector('button[type="submit"]');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      try {
+        const res = await fetch('https://api.web3forms.com/submit', {
+          method: 'POST',
+          body: new FormData(contactForm)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Message sent! I\'ll get back to you soon.');
+          contactForm.reset();
+          document.getElementById('selectText').textContent = 'What do you need help with?';
+        } else {
+          showToast('Something went wrong. Please try again.');
+        }
+      } catch {
+        showToast('Something went wrong. Please try again.');
+      }
+      btn.disabled = false;
+      btn.textContent = 'Send Message';
+    });
+
+    function showToast(message) {
+      let toast = document.querySelector('.toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4000);
+    }
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
