@@ -1181,7 +1181,7 @@
             <div class="contact-method">
               <div class="contact-method-icon"><i class="fas fa-envelope"></i></div>
               <div>
-                <a href="mailto:byron@beezkneez.nz">byron@beezkneez.nz</a>
+                <a id="emailLink" href="#"></a>
                 <span>Email anytime</span>
               </div>
             </div>
@@ -1397,6 +1397,15 @@
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 4000);
     }
+
+    // Email obfuscation
+    (function() {
+      var u = 'byron';
+      var d = 'beezkneez.nz';
+      var el = document.getElementById('emailLink');
+      el.href = 'mai' + 'lto:' + u + '@' + d;
+      el.textContent = u + '@' + d;
+    })();
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
