@@ -496,6 +496,278 @@
       font-size: 0.95rem;
     }
 
+    /* Before & After */
+    .before-after {
+      padding: 6rem 2rem;
+      background: var(--light);
+    }
+
+    .ba-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .ba-pair {
+      background: var(--white);
+      border-radius: 20px;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .ba-pair:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    }
+
+    .ba-slider {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      cursor: ew-resize;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .ba-slider img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      pointer-events: none;
+    }
+
+    .ba-before {
+      z-index: 1;
+      clip-path: inset(0 50% 0 0);
+    }
+
+    .ba-label {
+      position: absolute;
+      top: 12px;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      padding: 0.3rem 0.85rem;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      z-index: 3;
+    }
+
+    .ba-label-before {
+      left: 12px;
+    }
+
+    .ba-label-after {
+      right: 12px;
+    }
+
+    .ba-handle {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+
+    .ba-handle-line {
+      flex: 1;
+      width: 3px;
+      background: white;
+      box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
+    }
+
+    .ba-handle-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--green-dark);
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .ba-caption {
+      padding: 1.25rem 1.5rem;
+      color: var(--gray);
+      font-size: 0.95rem;
+    }
+
+    /* Reviews */
+    .reviews {
+      padding: 6rem 2rem;
+      background: var(--white);
+    }
+
+    .reviews-summary {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+      color: var(--gray);
+    }
+
+    .reviews-summary .stars {
+      color: var(--yellow);
+      letter-spacing: 2px;
+    }
+
+    .reviews-loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--gray);
+    }
+
+    .reviews-loading .spinner {
+      display: inline-block;
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--green-pale);
+      border-top-color: var(--green-mid);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .reviews-fallback {
+      text-align: center;
+      padding: 2rem;
+      display: none;
+    }
+
+    .reviews-fallback p {
+      color: var(--gray);
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+
+    .reviews-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      background: var(--light);
+      border-radius: 20px;
+      padding: 2rem;
+    }
+
+    .review-card {
+      padding: 2rem;
+      border-radius: 20px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .review-card:hover {
+    }
+
+    .review-card::before {
+      content: '\201C';
+      position: absolute;
+      top: 5%;
+      left: 5%;
+      transform: translateX(-50%);
+      font-size: 15rem;
+      line-height: 1;
+      color: var(--green-pale);
+      font-family: Georgia, serif;
+      z-index: 0;
+    }
+
+    .review-card .review-stars,
+    .review-card .review-text,
+    .review-card .review-header {
+      position: relative;
+      z-index: 1;
+    }
+
+    .review-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .review-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--green-pale);
+    }
+
+    .review-avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .review-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .review-author {
+      font-weight: 600;
+      color: var(--green-dark);
+      font-size: 0.95rem;
+    }
+
+    .review-date {
+      font-size: 0.8rem;
+      color: var(--gray);
+    }
+
+    .review-stars {
+      color: var(--yellow);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 1px;
+    }
+
+    .review-text {
+      color: var(--gray);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    .reviews-cta {
+      text-align: center;
+      margin-top: 2.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .review-card {
+        max-width: 100%;
+      }
+    }
+
     /* About */
     .about {
       padding: 6rem 2rem;
@@ -963,7 +1235,7 @@
         display: none;
       }
 
-      .services, .why-choose, .contact {
+      .services, .before-after, .why-choose, .reviews, .contact {
         padding: 4rem 1rem;
       }
 
@@ -1095,6 +1367,46 @@
     </div>
   </section>
 
+  <!-- Before & After -->
+  <section class="before-after" id="results">
+    <div class="container">
+      <div class="section-header animate-in">
+        <div class="section-tag">Results</div>
+        <h2 class="section-title">Before &amp; after</h2>
+      </div>
+      <div class="ba-grid">
+        <div class="ba-pair animate-in">
+          <div class="ba-slider">
+            <img class="ba-after" src="photos/before-after/pathway-after.jpg" alt="Clean side pathway after tidy-up" loading="lazy">
+            <img class="ba-before" src="photos/before-after/pathway-before.jpg" alt="Overgrown side pathway before tidy-up" loading="lazy">
+            <span class="ba-label ba-label-before">Before</span>
+            <span class="ba-label ba-label-after">After</span>
+            <div class="ba-handle">
+              <div class="ba-handle-line"></div>
+              <div class="ba-handle-circle"><i class="fas fa-arrows-alt-h"></i></div>
+              <div class="ba-handle-line"></div>
+            </div>
+          </div>
+          <p class="ba-caption">Side pathway — overgrown ferns and weeds cleared, pavers cleaned up and garden bed tidied.</p>
+        </div>
+        <div class="ba-pair animate-in">
+          <div class="ba-slider">
+            <img class="ba-after" src="photos/before-after/garden-bed-after.jpg" alt="Tidy garden bed after tidy-up" loading="lazy">
+            <img class="ba-before" src="photos/before-after/garden-bed-before.jpg" alt="Overgrown garden bed before tidy-up" loading="lazy">
+            <span class="ba-label ba-label-before">Before</span>
+            <span class="ba-label ba-label-after">After</span>
+            <div class="ba-handle">
+              <div class="ba-handle-line"></div>
+              <div class="ba-handle-circle"><i class="fas fa-arrows-alt-h"></i></div>
+              <div class="ba-handle-line"></div>
+            </div>
+          </div>
+          <p class="ba-caption">Garden bed — overgrown retaining wall area cleared, trimmed back and mulched.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Why Choose -->
   <section class="why-choose">
     <div class="container">
@@ -1123,6 +1435,29 @@
           <h3>Easy to Deal With</h3>
           <p>Friendly, no pressure, just good honest work from a local.</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="reviews" id="reviews">
+    <div class="container">
+      <div class="section-header animate-in">
+        <div class="section-tag">Reviews</div>
+        <h2 class="section-title">What my customers say</h2>
+      </div>
+      <p class="reviews-summary" id="reviewsSummary" style="display:none;"></p>
+      <div class="reviews-loading" id="reviewsLoading">
+        <div class="spinner"></div>
+        <p style="margin-top: 0.75rem;">Loading reviews...</p>
+      </div>
+      <div class="reviews-fallback" id="reviewsFallback">
+        <p>Couldn't load reviews right now — check us out on Google instead.</p>
+        <a href="https://search.google.com/local/reviews?placeid=ChIJ4cscNwKBnGsRHmXGR4PrJso" target="_blank" rel="noopener" class="btn btn-secondary">See Reviews on Google</a>
+      </div>
+      <div class="reviews-container" id="reviewsContainer"></div>
+      <div class="reviews-cta">
+        <a href="https://search.google.com/local/writereview?placeid=ChIJ4cscNwKBnGsRHmXGR4PrJso" target="_blank" rel="noopener" class="btn btn-primary">Leave a Review</a>
       </div>
     </div>
   </section>
@@ -1406,6 +1741,136 @@
       el.href = 'mai' + 'lto:' + u + '@' + d;
       el.textContent = u + '@' + d;
     })();
+
+    // Google Reviews
+    (function() {
+      var loadingEl = document.getElementById('reviewsLoading');
+      var fallbackEl = document.getElementById('reviewsFallback');
+      var containerEl = document.getElementById('reviewsContainer');
+      var summaryEl = document.getElementById('reviewsSummary');
+
+      function showFallback() {
+        loadingEl.style.display = 'none';
+        fallbackEl.style.display = 'block';
+      }
+
+      function renderStars(rating) {
+        var stars = '';
+        for (var i = 0; i < 5; i++) {
+          stars += i < Math.round(rating) ? '\u2605' : '\u2606';
+        }
+        return stars;
+      }
+
+      function renderReviews(data) {
+        loadingEl.style.display = 'none';
+
+        if (!data.reviews || data.reviews.length === 0) {
+          showFallback();
+          return;
+        }
+
+        if (data.rating) {
+          summaryEl.innerHTML =
+            '<span class="stars">' + renderStars(data.rating) + '</span> ' +
+            data.rating + ' out of 5' +
+            (data.totalRatings ? ' &middot; ' + data.totalRatings + ' review' + (data.totalRatings !== 1 ? 's' : '') : '');
+          summaryEl.style.display = 'block';
+        }
+
+        data.reviews.forEach(function(review) {
+          var card = document.createElement('div');
+          card.className = 'review-card animate-in';
+
+          var avatarHtml;
+          if (review.avatar) {
+            avatarHtml = '<img class="review-avatar" src="' + review.avatar + '" alt="' + review.author + '" referrerpolicy="no-referrer">';
+          } else {
+            avatarHtml = '<div class="review-avatar-placeholder">' + review.author.charAt(0).toUpperCase() + '</div>';
+          }
+
+          card.innerHTML =
+            '<div class="review-stars">' + renderStars(review.rating) + '</div>' +
+            (review.text ? '<p class="review-text">' + review.text + '</p>' : '') +
+            '<div class="review-header">' +
+              avatarHtml +
+              '<div class="review-meta">' +
+                '<span class="review-author">' + review.author + '</span>' +
+                '<span class="review-date">' + review.date + '</span>' +
+              '</div>' +
+            '</div>';
+
+          containerEl.appendChild(card);
+          setTimeout(function() { card.classList.add('visible'); }, 100);
+        });
+      }
+
+      async function fetchReviews() {
+        try {
+          var res = await fetch('reviews.json');
+          if (!res.ok) throw new Error('Failed');
+          var data = await res.json();
+          renderReviews(data);
+        } catch (e) {
+          showFallback();
+        }
+      }
+
+      // Lazy-load when reviews section is near viewport
+      var reviewsSection = document.getElementById('reviews');
+      var lazyObserver = new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting) {
+          lazyObserver.disconnect();
+          fetchReviews();
+        }
+      }, { rootMargin: '200px' });
+
+      lazyObserver.observe(reviewsSection);
+    })();
+
+    // Before & After sliders
+    document.querySelectorAll('.ba-slider').forEach(slider => {
+      const beforeImg = slider.querySelector('.ba-before');
+      const handle = slider.querySelector('.ba-handle');
+      let isDragging = false;
+
+      function setPosition(x) {
+        const rect = slider.getBoundingClientRect();
+        let pos = ((x - rect.left) / rect.width) * 100;
+        pos = Math.max(0, Math.min(100, pos));
+        beforeImg.style.clipPath = `inset(0 ${100 - pos}% 0 0)`;
+        handle.style.left = pos + '%';
+      }
+
+      slider.addEventListener('mousedown', e => {
+        isDragging = true;
+        setPosition(e.clientX);
+      });
+
+      window.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        setPosition(e.clientX);
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      slider.addEventListener('touchstart', e => {
+        isDragging = true;
+        setPosition(e.touches[0].clientX);
+      }, { passive: true });
+
+      slider.addEventListener('touchmove', e => {
+        if (!isDragging) return;
+        e.preventDefault();
+        setPosition(e.touches[0].clientX);
+      }, { passive: false });
+
+      slider.addEventListener('touchend', () => {
+        isDragging = false;
+      });
+    });
 
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {

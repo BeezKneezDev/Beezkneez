@@ -1,0 +1,48 @@
+name: Update Google Reviews
+
+on:
+  schedule:
+    - cron: '0 3 * * 1' # Every Monday at 3am UTC
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  fetch-reviews:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch reviews from Google Places API
+        run: |
+          RESPONSE=$(curl -s -f \
+            -H "X-Goog-Api-Key: ${{ secrets.GOOGLE_PLACES_API_KEY }}" \
+            -H "X-Goog-FieldMask: rating,userRatingCount,reviews" \
+            "https://places.googleapis.com/v1/places/ChIJ4cscNwKBnGsRHmXGR4PrJso")
+
+          if [ $? -ne 0 ]; then
+            echo "API request failed"
+            exit 1
+          fi
+
+          echo "$RESPONSE" | python3 -c "
+          import json, sys
+          place = json.load(sys.stdin)
+          data = {
+            'rating': place.get('rating'),
+            'totalRatings': place.get('userRatingCount'),
+            'reviews': [{
+              'author': r.get('authorAttribution', {}).get('displayName', 'Anonymous'),
+              'avatar': r.get('authorAttribution', {}).get('photoUri', ''),
+              'rating': r.get('rating'),
+              'date': r.get('relativePublishTimeDescription', ''),
+              'text': r.get('text', {}).get('text', '') if isinstance(r.get('text'), dict) else r.get('text', '')
+            } for r in place.get('reviews', [])]
+          }
+          json.dump(data, open('reviews.json', 'w'), indent=2)
+          "
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add reviews.json
+          git diff --staged --quiet || git commit -m "Update Google Reviews" && git push
