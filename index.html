@@ -946,11 +946,17 @@
       color: white;
     }
 
-    .contact-method a {
-      color: var(--green-dark);
+    a.contact-method {
       text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .contact-method strong {
+      color: var(--green-dark);
       font-weight: 600;
       font-size: 1.1rem;
+      display: block;
     }
 
     .contact-method span {
@@ -1506,20 +1512,27 @@
           <p>Get in touch for a free, no-obligation quote. I'll get back to you as soon as I can.</p>
 
           <div class="contact-methods">
-            <div class="contact-method">
+            <a class="contact-method" href="tel:+64221924346">
               <div class="contact-method-icon"><i class="fas fa-phone"></i></div>
               <div>
-                <a href="tel:+64221924346">022 192 4346</a>
+                <strong>022 192 4346</strong>
                 <span>Give me a call or text</span>
               </div>
-            </div>
-            <div class="contact-method">
+            </a>
+            <a class="contact-method" id="emailMethod" href="#">
               <div class="contact-method-icon"><i class="fas fa-envelope"></i></div>
               <div>
-                <a id="emailLink" href="#"></a>
+                <strong id="emailLink"></strong>
                 <span>Email anytime</span>
               </div>
-            </div>
+            </a>
+            <a class="contact-method" href="https://www.facebook.com/profile.php?id=61584978087247" target="_blank" rel="noopener">
+              <div class="contact-method-icon"><i class="fab fa-facebook-f"></i></div>
+              <div>
+                <strong>Beezkneez on Facebook</strong>
+                <span>Follow for updates</span>
+              </div>
+            </a>
           </div>
         </div>
 
@@ -1583,6 +1596,7 @@
         <img src="beezkneez-logo.png" alt="Beezkneez">
         <span>Beezkneez Lawns & Property Care</span>
       </div>
+      <a href="https://www.facebook.com/profile.php?id=61584978087247" target="_blank" rel="noopener" style="color: rgba(255,255,255,0.7); font-size: 1.25rem; transition: color 0.3s ease;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.7)'"><i class="fab fa-facebook-f"></i></a>
       <p class="footer-copy">&copy; 2026 Beezkneez. Rotorua, New Zealand.</p>
     </div>
   </footer>
@@ -1737,9 +1751,10 @@
     (function() {
       var u = 'byron';
       var d = 'beezkneez.nz';
-      var el = document.getElementById('emailLink');
-      el.href = 'mai' + 'lto:' + u + '@' + d;
-      el.textContent = u + '@' + d;
+      var method = document.getElementById('emailMethod');
+      var label = document.getElementById('emailLink');
+      method.href = 'mai' + 'lto:' + u + '@' + d + '?subject=Quote%20enquiry%20from%20beezkneez.nz';
+      label.textContent = u + '@' + d;
     })();
 
     // Google Reviews
