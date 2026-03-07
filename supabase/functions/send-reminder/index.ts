@@ -1,4 +1,6 @@
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { generateInvoicePdf } from '../_shared/generate-pdf.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -99,7 +101,7 @@ serve(async (req) => {
     }
 
     const html = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto 40px; color: #333;">
         <div style="background: #2d5a27; padding: 24px; border-radius: 8px 8px 0 0;">
           <h1 style="color: #fff; margin: 0; font-size: 1.4rem;">Beezkneez Lawns &amp; Property Care</h1>
         </div>
@@ -129,6 +131,21 @@ serve(async (req) => {
       </div>
     `
 
+    const pdfBytes = await generateInvoicePdf(invoice, customer)
+
+    // Upload PDF to Supabase Storage and get a signed URL for Resend
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+    const filePath = `${invoice.invoice_number}.pdf`
+    await supabase.storage.from('invoices').upload(filePath, pdfBytes, {
+      contentType: 'application/pdf',
+      upsert: true,
+    })
+    const { data: signed } = await supabase.storage.from('invoices').createSignedUrl(filePath, 3600)
+    if (!signed?.signedUrl) throw new Error('Failed to create signed URL for PDF')
+
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -140,6 +157,10 @@ serve(async (req) => {
         to: 'byron@beezkneez.nz',
         subject: `Payment Reminder — ${invoice.invoice_number} — Beezkneez Lawns & Property Care`,
         html,
+        attachments: [{
+          filename: `Invoice-${invoice.invoice_number}.pdf`,
+          path: signed.signedUrl,
+        }],
       }),
     })
 

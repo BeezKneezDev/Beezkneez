@@ -41,8 +41,7 @@ export default function InvoiceDetail() {
   // Edit modal state
   const [showEdit, setShowEdit] = useState(false)
   const [customers, setCustomers] = useState([])
-  const [jobs, setJobs] = useState([])
-  const [editForm, setEditForm] = useState({ customer_id: '', job_id: '', line_items: [{ description: '', amount: '' }], status: 'draft', due_date: '', discount_percent: 0 })
+  const [editForm, setEditForm] = useState({ customer_id: '', line_items: [{ description: '', amount: '' }], status: 'draft', due_date: '', discount_percent: 0 })
   const [saving, setSaving] = useState(false)
 
   // Inline draft editing
@@ -77,10 +76,11 @@ export default function InvoiceDetail() {
         )
       }
 
-      // Fetch job notes
-      if (inv.job_id) {
+      // Fetch job notes from all jobs linked via line_items
+      const jobIds = [...new Set((inv.line_items || []).map(li => li.job_id).filter(Boolean))]
+      if (jobIds.length > 0) {
         promises.push(
-          supabase.from('notes').select('*').eq('job_id', inv.job_id)
+          supabase.from('notes').select('*').in('job_id', jobIds)
             .order('created_at', { ascending: false })
             .then(({ data }) => { if (data) setJobNotes(data) })
         )
@@ -105,11 +105,21 @@ export default function InvoiceDetail() {
   async function handleSendInvoice() {
     setUpdating(true)
     // Send email via edge function
-    const { error: fnError } = await supabase.functions.invoke('send-invoice', {
-      body: { invoice, customer },
-    })
-    if (fnError) {
-      alert('Failed to send email: ' + fnError.message)
+    try {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-invoice`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ invoice, customer }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Unknown error')
+      }
+    } catch (e) {
+      alert('Failed to send email: ' + e.message)
       setUpdating(false)
       return
     }
@@ -125,11 +135,21 @@ export default function InvoiceDetail() {
 
   async function handleSendReminder() {
     setUpdating(true)
-    const { error: fnError } = await supabase.functions.invoke('send-reminder', {
-      body: { invoice, customer },
-    })
-    if (fnError) {
-      alert('Failed to send reminder: ' + fnError.message)
+    try {
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-reminder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ invoice, customer }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Unknown error')
+      }
+    } catch (e) {
+      alert('Failed to send reminder: ' + e.message)
     }
     setUpdating(false)
   }
@@ -165,18 +185,14 @@ export default function InvoiceDetail() {
       : [{ description: invoice.description || '', amount: invoice.amount || 0 }]
     setEditForm({
       customer_id: invoice.customer_id || '',
-      job_id: invoice.job_id || '',
       line_items: lineItems,
       status: invoice.status || 'draft',
       due_date: invoice.due_date || '',
       discount_percent: invoice.discount_percent || 0,
     })
-    // Load customers and jobs for the select dropdowns
+    // Load customers for the select dropdown
     supabase.from('customers').select('id, name').order('name').then(({ data }) => {
       if (data) setCustomers(data)
-    })
-    supabase.from('jobs').select('id, type, customer_id').order('created_at', { ascending: false }).then(({ data }) => {
-      if (data) setJobs(data)
     })
     setShowEdit(true)
   }
@@ -188,7 +204,6 @@ export default function InvoiceDetail() {
     const subtotal = lineItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
     const payload = {
       customer_id: editForm.customer_id,
-      job_id: editForm.job_id || null,
       amount: subtotal,
       line_items: lineItems,
       description: lineItems.map(li => li.description).filter(Boolean).join(', ') || null,
@@ -214,11 +229,6 @@ export default function InvoiceDetail() {
   const draftSubtotal = draftItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
   const draftDiscountNum = Number(draftDiscount) || 0
   const draftTotal = draftSubtotal * (1 - draftDiscountNum / 100)
-
-  // Filter jobs by selected customer in edit modal
-  const filteredJobs = editForm.customer_id
-    ? jobs.filter(j => j.customer_id === editForm.customer_id)
-    : jobs
 
   if (loading) {
     return (
@@ -572,24 +582,12 @@ export default function InvoiceDetail() {
                 <label>Customer *</label>
                 <select
                   value={editForm.customer_id}
-                  onChange={e => setEditForm({ ...editForm, customer_id: e.target.value, job_id: '' })}
+                  onChange={e => setEditForm({ ...editForm, customer_id: e.target.value })}
                   required
                 >
                   <option value="">Select customer...</option>
                   {customers.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="dash-form-group">
-                <label>Job</label>
-                <select
-                  value={editForm.job_id}
-                  onChange={e => setEditForm({ ...editForm, job_id: e.target.value })}
-                >
-                  <option value="">No linked job</option>
-                  {filteredJobs.map(j => (
-                    <option key={j.id} value={j.id}>{j.type}</option>
                   ))}
                 </select>
               </div>
