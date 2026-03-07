@@ -27,12 +27,11 @@ function defaultDueDate() {
   return d.toISOString().split('T')[0]
 }
 
-const emptyForm = { customer_id: '', job_id: '', line_items: [{ description: '', amount: '' }], status: 'draft', due_date: defaultDueDate(), discount_percent: 0 }
+const emptyForm = { customer_id: '', line_items: [{ description: '', amount: '' }], status: 'draft', due_date: defaultDueDate(), discount_percent: 0 }
 
 export default function Invoices() {
   const [invoices, setInvoices] = useState([])
   const [customers, setCustomers] = useState([])
-  const [jobs, setJobs] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editing, setEditing] = useState(null)
@@ -44,7 +43,7 @@ export default function Invoices() {
   async function fetchInvoices() {
     const { data } = await supabase
       .from('invoices')
-      .select('*, customers(id, name), jobs(id, type)')
+      .select('*, customers(id, name)')
       .order('created_at', { ascending: false })
     if (data) setInvoices(data)
     setLoading(false)
@@ -54,9 +53,6 @@ export default function Invoices() {
     fetchInvoices()
     supabase.from('customers').select('id, name').order('name').then(({ data }) => {
       if (data) setCustomers(data)
-    })
-    supabase.from('jobs').select('id, type, customer_id').order('created_at', { ascending: false }).then(({ data }) => {
-      if (data) setJobs(data)
     })
   }, [])
 
@@ -83,7 +79,6 @@ export default function Invoices() {
       : [{ description: invoice.description || '', amount: invoice.amount || 0 }]
     setForm({
       customer_id: invoice.customer_id || '',
-      job_id: invoice.job_id || '',
       line_items: lineItems,
       status: invoice.status || 'draft',
       due_date: invoice.due_date || '',
@@ -106,7 +101,6 @@ export default function Invoices() {
     const subtotal = lineItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
     const payload = {
       customer_id: form.customer_id,
-      job_id: form.job_id || null,
       amount: subtotal,
       line_items: lineItems,
       description: lineItems.map(li => li.description).filter(Boolean).join(', ') || null,
@@ -144,11 +138,6 @@ export default function Invoices() {
       setDeleting(invoice.id)
     }
   }
-
-  // Filter jobs by selected customer
-  const filteredJobs = form.customer_id
-    ? jobs.filter(j => j.customer_id === form.customer_id)
-    : jobs
 
   return (
     <>
@@ -197,9 +186,6 @@ export default function Invoices() {
                   <td>{formatDate(inv.due_date)}</td>
                   <td><span className={badgeClass(inv.status)}>{inv.status}</span></td>
                   <td className="dash-row-actions">
-                    <button className="dash-btn-icon" onClick={() => openEdit(inv)} title="Edit">
-                      <i className="fa-solid fa-pen-to-square"></i>
-                    </button>
                     <button
                       className={`dash-btn-icon dash-btn-icon--danger ${deleting === inv.id ? 'confirm' : ''}`}
                       onClick={() => handleDelete(inv)}
@@ -230,24 +216,12 @@ export default function Invoices() {
                 <label>Customer *</label>
                 <select
                   value={form.customer_id}
-                  onChange={e => setForm({ ...form, customer_id: e.target.value, job_id: '' })}
+                  onChange={e => setForm({ ...form, customer_id: e.target.value })}
                   required
                 >
                   <option value="">Select customer...</option>
                   {customers.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="dash-form-group">
-                <label>Job</label>
-                <select
-                  value={form.job_id}
-                  onChange={e => setForm({ ...form, job_id: e.target.value })}
-                >
-                  <option value="">No linked job</option>
-                  {filteredJobs.map(j => (
-                    <option key={j.id} value={j.id}>{j.type}</option>
                   ))}
                 </select>
               </div>

@@ -29,7 +29,6 @@ const frequencyLabels = {
 function badgeClass(status) {
   const map = {
     scheduled: 'dash-badge--scheduled',
-    in_progress: 'dash-badge--in-progress',
     completed: 'dash-badge--completed',
     cancelled: 'dash-badge--cancelled',
   }
@@ -287,7 +286,6 @@ export default function Jobs() {
                     onChange={e => setForm({ ...form, status: e.target.value })}
                   >
                     <option value="scheduled">Scheduled</option>
-                    <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>

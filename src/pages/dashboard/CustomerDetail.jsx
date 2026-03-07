@@ -22,7 +22,6 @@ function formatCurrency(amount) {
 function jobBadgeClass(status) {
   const map = {
     scheduled: 'dash-badge--scheduled',
-    in_progress: 'dash-badge--in-progress',
     completed: 'dash-badge--completed',
     cancelled: 'dash-badge--cancelled',
   }

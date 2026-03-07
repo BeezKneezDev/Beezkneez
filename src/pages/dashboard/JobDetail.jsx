@@ -21,7 +21,6 @@ function formatCurrency(amount) {
 function jobBadgeClass(status) {
   const map = {
     scheduled: 'dash-badge--scheduled',
-    in_progress: 'dash-badge--in-progress',
     completed: 'dash-badge--completed',
     cancelled: 'dash-badge--cancelled',
   }
@@ -46,11 +45,23 @@ const frequencyLabels = {
   quarterly: 'Quarterly',
 }
 
+function getNextDate(currentDate, frequency) {
+  const d = new Date(currentDate)
+  switch (frequency) {
+    case 'weekly': d.setDate(d.getDate() + 7); break
+    case 'fortnightly': d.setDate(d.getDate() + 14); break
+    case 'monthly': d.setMonth(d.getMonth() + 1); break
+    case 'quarterly': d.setMonth(d.getMonth() + 3); break
+    default: break
+  }
+  return d.toISOString().split('T')[0]
+}
+
 export default function JobDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const [job, setJob] = useState(null)
-  const [invoice, setInvoice] = useState(null)
+  const [linkedInvoices, setLinkedInvoices] = useState([])
   const [loading, setLoading] = useState(true)
   const [jobNotes, setJobNotes] = useState([])
   const [newNote, setNewNote] = useState('')
@@ -62,21 +73,45 @@ export default function JobDetail() {
   const [editForm, setEditForm] = useState({ customer_id: '', service_id: '', description: '', scheduled_date: '', amount: '', status: 'scheduled', frequency: 'one_off' })
   const [saving, setSaving] = useState(false)
   const [completing, setCompleting] = useState(false)
+  const [draftInvoice, setDraftInvoice] = useState(null)
+  const [alreadyInvoiced, setAlreadyInvoiced] = useState(false)
+  const [earlyWarning, setEarlyWarning] = useState(null)
 
   useEffect(() => {
     async function fetchAll() {
-      const [jobRes, invRes, notesRes, servicesRes, customersRes] = await Promise.all([
+      const [jobRes, notesRes, servicesRes, customersRes] = await Promise.all([
         supabase.from('jobs').select('*, customers(id, name), services(id, name)').eq('id', id).single(),
-        supabase.from('invoices').select('*').eq('job_id', id).limit(1),
         supabase.from('notes').select('*').eq('job_id', id).order('created_at', { ascending: false }),
         supabase.from('services').select('*').order('name'),
         supabase.from('customers').select('id, name').order('name'),
       ])
       if (jobRes.data) setJob(jobRes.data)
-      if (invRes.data && invRes.data.length > 0) setInvoice(invRes.data[0])
       if (notesRes.data) setJobNotes(notesRes.data)
       if (servicesRes.data) setServices(servicesRes.data)
       if (customersRes.data) setCustomers(customersRes.data)
+
+      // Find all linked invoices (any invoice whose line_items contain this job_id)
+      if (jobRes.data?.customer_id) {
+        const { data: custInvoices } = await supabase
+          .from('invoices')
+          .select('*')
+          .eq('customer_id', jobRes.data.customer_id)
+          .order('created_at', { ascending: false })
+        if (custInvoices) {
+          const linked = custInvoices.filter(inv =>
+            (inv.line_items || []).some(li => li.job_id === id)
+          )
+          setLinkedInvoices(linked)
+
+          // Check if there's an existing draft for this customer
+          const draft = custInvoices.find(inv => inv.status === 'draft')
+          if (draft) setDraftInvoice(draft)
+
+          // Check if this job is already on any invoice's line_items (for one-off jobs)
+          setAlreadyInvoiced(linked.length > 0)
+        }
+      }
+
       setLoading(false)
     }
     fetchAll()
@@ -146,45 +181,113 @@ export default function JobDetail() {
     return 'INV-001'
   }
 
-  async function handleCompleteAndInvoice() {
-    setCompleting(true)
-    // Mark job as completed
-    await supabase.from('jobs').update({ status: 'completed' }).eq('id', id)
-    // Generate invoice
-    const invoiceNumber = await generateInvoiceNumber()
-    const dueDate = new Date()
-    dueDate.setDate(dueDate.getDate() + 7)
-    const lineItems = [
-      { description: job.description || serviceName, amount: job.amount || 0 },
-      ...jobNotes.map(note => ({ description: note.content, amount: 0 })),
-    ]
-    const totalAmount = lineItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
-    const { data: newInvoice, error } = await supabase.from('invoices').insert({
-      invoice_number: invoiceNumber,
-      customer_id: job.customer_id,
-      job_id: id,
-      amount: totalAmount,
-      line_items: lineItems,
-      description: job.description || serviceName,
-      status: 'draft',
-      due_date: dueDate.toISOString().split('T')[0],
-    }).select().single()
-    setCompleting(false)
-    if (error) {
-      console.error('Invoice insert error:', error)
-      alert('Failed to create invoice: ' + error.message)
-      return
+  function handleCompleteAndInvoice() {
+    // Warn if invoicing well before scheduled date
+    if (isRecurring && job.scheduled_date) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const scheduled = new Date(job.scheduled_date)
+      scheduled.setHours(0, 0, 0, 0)
+      const daysEarly = Math.round((scheduled - today) / (1000 * 60 * 60 * 24))
+      if (daysEarly > 1) {
+        setEarlyWarning({ date: job.scheduled_date, days: daysEarly })
+        return
+      }
     }
-    if (newInvoice) {
-      navigate(`/dashboard/invoices/${newInvoice.id}`)
+    proceedWithInvoice()
+  }
+
+  async function proceedWithInvoice() {
+    setEarlyWarning(null)
+    setCompleting(true)
+
+    const newLineItems = [
+      { description: job.description || serviceName, amount: job.amount || 0, job_id: id },
+      ...jobNotes.map(note => ({ description: note.content, amount: 0, job_id: id })),
+    ]
+
+    let invoiceId = null
+
+    if (draftInvoice) {
+      // Append to existing draft invoice
+      const existingItems = draftInvoice.line_items || []
+      const mergedItems = [...existingItems, ...newLineItems]
+      const totalAmount = mergedItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
+      const description = mergedItems.map(li => li.description).filter(Boolean).join(', ') || null
+      const { data: updated, error } = await supabase.from('invoices').update({
+        line_items: mergedItems,
+        amount: totalAmount,
+        description,
+      }).eq('id', draftInvoice.id).select().single()
+      if (error) {
+        console.error('Invoice update error:', error)
+        alert('Failed to update invoice: ' + error.message)
+        setCompleting(false)
+        return
+      }
+      invoiceId = updated?.id
+    } else {
+      // Create new invoice
+      const invoiceNumber = await generateInvoiceNumber()
+      const dueDate = new Date()
+      dueDate.setDate(dueDate.getDate() + 7)
+      const totalAmount = newLineItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
+      const { data: newInvoice, error } = await supabase.from('invoices').insert({
+        invoice_number: invoiceNumber,
+        customer_id: job.customer_id,
+        amount: totalAmount,
+        line_items: newLineItems,
+        description: job.description || serviceName,
+        status: 'draft',
+        due_date: dueDate.toISOString().split('T')[0],
+      }).select().single()
+      if (error) {
+        console.error('Invoice insert error:', error)
+        alert('Failed to create invoice: ' + error.message)
+        setCompleting(false)
+        return
+      }
+      invoiceId = newInvoice?.id
+    }
+
+    if (isRecurring) {
+      // Record completion and advance scheduled_date
+      const completions = [...(job.completions || []), { completed_at: new Date().toISOString(), invoice_id: invoiceId }]
+      const nextDate = getNextDate(job.scheduled_date || new Date().toISOString(), job.frequency)
+      const { error: jobError } = await supabase.from('jobs').update({
+        completions,
+        scheduled_date: nextDate,
+      }).eq('id', id)
+      if (jobError) {
+        console.error('Job update error:', jobError)
+        alert('Invoice created but failed to advance schedule: ' + jobError.message)
+      }
+      // Refresh job and invoices
+      const [jobRes, invoicesRes] = await Promise.all([
+        supabase.from('jobs').select('*, customers(id, name), services(id, name)').eq('id', id).single(),
+        supabase.from('invoices').select('*').eq('customer_id', job.customer_id).order('created_at', { ascending: false }),
+      ])
+      if (jobRes.data) setJob(jobRes.data)
+      if (invoicesRes.data) {
+        const linked = invoicesRes.data.filter(inv => (inv.line_items || []).some(li => li.job_id === id))
+        setLinkedInvoices(linked)
+        const draft = invoicesRes.data.find(inv => inv.status === 'draft')
+        setDraftInvoice(draft || null)
+      }
+      setCompleting(false)
+    } else {
+      // One-off: mark completed and navigate to invoice
+      await supabase.from('jobs').update({ status: 'completed' }).eq('id', id)
+      setCompleting(false)
+      if (invoiceId) navigate(`/dashboard/invoices/${invoiceId}`)
     }
   }
 
-  const canCompleteAndInvoice = job &&
-    job.frequency === 'one_off' &&
-    job.status !== 'completed' &&
-    job.status !== 'cancelled' &&
-    !invoice
+  const isRecurring = job && job.frequency && job.frequency !== 'one_off'
+  const canCompleteAndInvoice = job && job.status !== 'cancelled' && (
+    isRecurring ||
+    (job.status !== 'completed' && !alreadyInvoiced)
+  )
 
   const serviceName = job?.services?.name || job?.type || 'Job'
 
@@ -230,7 +333,7 @@ export default function JobDetail() {
         </button>
         {canCompleteAndInvoice && (
           <button className="dash-action-btn" style={{ marginLeft: 'auto' }} onClick={handleCompleteAndInvoice} disabled={completing}>
-            <i className="fa-solid fa-file-invoice-dollar"></i> {completing ? 'Creating...' : 'Complete & Create Invoice'}
+            <i className="fa-solid fa-file-invoice-dollar"></i> {completing ? 'Adding...' : isRecurring ? 'Invoice & Schedule Next' : draftInvoice ? 'Complete & Add to Invoice' : 'Complete & Create Invoice'}
           </button>
         )}
       </div>
@@ -305,10 +408,42 @@ export default function JobDetail() {
         )}
       </div>
 
-      {/* Linked Invoice */}
-      {invoice && (
+      {/* Activity (recurring jobs only) */}
+      {isRecurring && (job.completions || []).length > 0 && (
         <div className="dash-section">
-          <h2 className="dash-section-title">Linked Invoice</h2>
+          <h2 className="dash-section-title">Activity</h2>
+          <table className="dash-table">
+            <thead>
+              <tr>
+                <th>Completed</th>
+                <th>Invoice</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...(job.completions || [])].reverse().map((c, i) => {
+                const linked = linkedInvoices.find(inv => inv.id === c.invoice_id)
+                return (
+                  <tr key={i}>
+                    <td>{formatTimestamp(c.completed_at)}</td>
+                    <td>
+                      {linked ? (
+                        <Link to={`/dashboard/invoices/${linked.id}`} style={{ color: 'var(--green-mid)', fontWeight: 500 }}>
+                          {linked.invoice_number}
+                        </Link>
+                      ) : '—'}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Linked Invoices */}
+      {linkedInvoices.length > 0 && (
+        <div className="dash-section">
+          <h2 className="dash-section-title">Linked Invoices</h2>
           <table className="dash-table">
             <thead>
               <tr>
@@ -320,13 +455,15 @@ export default function JobDetail() {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td style={{ fontWeight: 500 }}>{invoice.invoice_number}</td>
-                <td>{invoice.description}</td>
-                <td className="dash-amount">{formatCurrency(invoice.amount)}</td>
-                <td>{formatDate(invoice.created_at)}</td>
-                <td><span className={invoiceBadgeClass(invoice.status)}>{invoice.status}</span></td>
-              </tr>
+              {linkedInvoices.map(inv => (
+                <tr key={inv.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/dashboard/invoices/${inv.id}`)}>
+                  <td style={{ fontWeight: 500 }}>{inv.invoice_number}</td>
+                  <td>{inv.description}</td>
+                  <td className="dash-amount">{formatCurrency(inv.amount)}</td>
+                  <td>{formatDate(inv.created_at)}</td>
+                  <td><span className={invoiceBadgeClass(inv.status)}>{inv.status}</span></td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -390,7 +527,6 @@ export default function JobDetail() {
                     onChange={e => setEditForm({ ...editForm, status: e.target.value })}
                   >
                     <option value="scheduled">Scheduled</option>
-                    <option value="in_progress">In Progress</option>
                     <option value="completed">Completed</option>
                     <option value="cancelled">Cancelled</option>
                   </select>
@@ -444,6 +580,32 @@ export default function JobDetail() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {earlyWarning && (
+        <div className="dash-modal-overlay" onClick={() => setEarlyWarning(null)}>
+          <div className="dash-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 420 }}>
+            <div className="dash-modal-header">
+              <h3>Invoice Early?</h3>
+              <button className="dash-modal-close" onClick={() => setEarlyWarning(null)}>
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div style={{ padding: '20px 24px', lineHeight: 1.5, color: '#ccc' }}>
+              <p style={{ margin: '0 0 12px' }}>
+                <i className="fa-solid fa-triangle-exclamation" style={{ color: '#f0ad4e', marginRight: 8 }}></i>
+                This job isn't scheduled until <strong>{formatDate(earlyWarning.date)}</strong> — that's <strong>{earlyWarning.days} days</strong> away.
+              </p>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: '#999' }}>
+                Are you sure you want to invoice and advance the schedule now?
+              </p>
+            </div>
+            <div className="dash-modal-actions" style={{ margin: '8px 24px 20px' }}>
+              <button className="dash-btn-secondary" onClick={() => setEarlyWarning(null)}>Cancel</button>
+              <button className="dash-action-btn" onClick={proceedWithInvoice}>Invoice Anyway</button>
+            </div>
           </div>
         </div>
       )}
