@@ -120,6 +120,25 @@
   color: var(--green-mid);
 }
 
+.dash-logout-btn {
+  background: none;
+  border: none;
+  color: var(--gray);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  margin-top: 8px;
+  transition: color 0.15s;
+}
+
+.dash-logout-btn:hover {
+  color: #d32f2f;
+}
+
 /* Main Content */
 .dash-main {
   flex: 1;

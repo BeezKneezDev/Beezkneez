@@ -1,5 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
+import Login from './pages/Login'
+import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/DashboardLayout'
 import Dashboard from './pages/Dashboard'
 import Customers from './pages/dashboard/Customers'
@@ -15,16 +17,19 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/dashboard" element={<DashboardLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="customers" element={<Customers />} />
-        <Route path="customers/:id" element={<CustomerDetail />} />
-        <Route path="jobs" element={<Jobs />} />
-        <Route path="jobs/:id" element={<JobDetail />} />
-        <Route path="services" element={<Services />} />
-        <Route path="quotes" element={<Quotes />} />
-        <Route path="invoices" element={<Invoices />} />
-        <Route path="invoices/:id" element={<InvoiceDetail />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/dashboard" element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="customers" element={<Customers />} />
+          <Route path="customers/:id" element={<CustomerDetail />} />
+          <Route path="jobs" element={<Jobs />} />
+          <Route path="jobs/:id" element={<JobDetail />} />
+          <Route path="services" element={<Services />} />
+          <Route path="quotes" element={<Quotes />} />
+          <Route path="invoices" element={<Invoices />} />
+          <Route path="invoices/:id" element={<InvoiceDetail />} />
+        </Route>
       </Route>
     </Routes>
   )

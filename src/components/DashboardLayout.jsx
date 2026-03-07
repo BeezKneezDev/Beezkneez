@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import '../styles/dashboard.css'
 
 const navItems = [
@@ -14,6 +14,12 @@ const navItems = [
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    localStorage.removeItem('bk_auth')
+    navigate('/login')
+  }
 
   const pageTitle = navItems.find(item =>
     item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
@@ -57,6 +63,9 @@ export default function DashboardLayout() {
 
           <div className="dash-back-link">
             <Link to="/"><i className="fa-solid fa-arrow-left"></i> Back to site</Link>
+            <button onClick={handleLogout} className="dash-logout-btn">
+              <i className="fa-solid fa-right-from-bracket"></i> Log out
+            </button>
           </div>
         </aside>
 
