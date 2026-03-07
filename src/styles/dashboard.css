@@ -1,0 +1,955 @@
+/* Dashboard Layout */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f5f7f5;
+}
+
+/* Top Bar — green strip like Yardbook */
+.dash-topbar {
+  background: linear-gradient(135deg, var(--green-mid) 0%, var(--green-dark) 100%);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 110;
+}
+
+.dash-topbar-title {
+  color: var(--white);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.dash-topbar-user {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Body wrapper: sidebar + content */
+.dash-body {
+  display: flex;
+  flex: 1;
+  margin-top: 52px;
+}
+
+/* Sidebar — light, like Yardbook */
+.dash-sidebar {
+  width: 200px;
+  background: var(--white);
+  border-right: 1px solid #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  position: fixed;
+  top: 52px;
+  left: 0;
+  bottom: 0;
+  z-index: 100;
+}
+
+.dash-nav {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+
+.dash-nav li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  color: var(--gray);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.dash-nav li a:hover {
+  color: var(--green-dark);
+  background: var(--green-pale);
+}
+
+.dash-nav li a.active {
+  color: var(--green-dark);
+  background: var(--green-pale);
+  border-left-color: var(--green-mid);
+  font-weight: 600;
+}
+
+.dash-nav-icon {
+  font-size: 1rem;
+  width: 20px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+.dash-nav li a.active .dash-nav-icon {
+  opacity: 1;
+}
+
+.dash-back-link {
+  padding: 12px 20px;
+  border-top: 1px solid #e8e8e8;
+  margin-top: auto;
+}
+
+.dash-back-link a {
+  color: var(--gray);
+  text-decoration: none;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s;
+}
+
+.dash-back-link a:hover {
+  color: var(--green-mid);
+}
+
+/* Main Content */
+.dash-main {
+  flex: 1;
+  margin-left: 200px;
+  padding: 28px 32px;
+}
+
+/* Breadcrumb + page header */
+.dash-breadcrumb {
+  font-size: 0.8rem;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+
+.dash-breadcrumb a {
+  color: var(--green-mid);
+  text-decoration: none;
+}
+
+.dash-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.dash-header {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.dash-header h1 {
+  font-size: 1.5rem;
+  color: var(--green-mid);
+  font-weight: 700;
+}
+
+.dash-header span {
+  color: var(--gray);
+  font-size: 0.85rem;
+}
+
+/* Stats Bar — inline like Yardbook */
+.dash-stats {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.dash-stat-card {
+  background: var(--white);
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.dash-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.dash-stat-icon--clients {
+  background: var(--green-pale);
+}
+
+.dash-stat-icon--jobs {
+  background: #e3f2fd;
+}
+
+.dash-stat-icon--quotes {
+  background: var(--yellow-light);
+}
+
+.dash-stat-icon--revenue {
+  background: #f3e5f5;
+}
+
+.dash-stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1.2;
+}
+
+.dash-stat-label {
+  font-size: 0.75rem;
+  color: var(--gray);
+  font-weight: 500;
+}
+
+/* Section Panels */
+.dash-section {
+  background: var(--white);
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.dash-section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--green-mid);
+  margin-bottom: 16px;
+}
+
+/* Tables — clean Yardbook style */
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dash-table th {
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  color: var(--gray);
+  font-weight: 600;
+  border-bottom: 1px solid #ddd;
+  background: #fafbfa;
+}
+
+.dash-table td {
+  padding: 12px 14px;
+  font-size: 0.88rem;
+  color: var(--dark);
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dash-table tbody tr:hover {
+  background: #f8faf8;
+}
+
+/* Client name links — green like Yardbook */
+.dash-table .dash-client-name {
+  color: var(--green-mid);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.dash-table .dash-client-name:hover {
+  text-decoration: underline;
+}
+
+/* Status Badges */
+.dash-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.dash-badge--scheduled {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.dash-badge--in-progress,
+.dash-badge--active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.dash-badge--done,
+.dash-badge--completed {
+  background: var(--green-pale);
+  color: var(--green-dark);
+}
+
+.dash-badge--cancelled {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.dash-badge--new {
+  background: #f0f0f0;
+  color: var(--gray);
+}
+
+.dash-badge--responded {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.dash-badge--quoted {
+  background: var(--yellow-light);
+  color: #e65100;
+}
+
+/* Section Header — title + action button inline */
+.dash-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.dash-section-header .dash-section-title {
+  margin-bottom: 0;
+}
+
+/* Green action button */
+.dash-action-btn {
+  background: var(--green-mid);
+  color: var(--white);
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.dash-action-btn:hover {
+  background: var(--green-dark);
+}
+
+/* Amount / currency styling */
+.dash-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Row action buttons */
+.dash-row-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.dash-btn-icon {
+  background: none;
+  border: 1px solid #e8e8e8;
+  border-radius: 5px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--gray);
+  font-size: 0.8rem;
+  transition: all 0.15s;
+}
+
+.dash-btn-icon:hover {
+  background: var(--green-pale);
+  color: var(--green-mid);
+  border-color: var(--green-mid);
+}
+
+.dash-btn-icon--danger:hover,
+.dash-btn-icon--danger.confirm {
+  background: #fce4ec;
+  color: #c62828;
+  border-color: #c62828;
+}
+
+/* Modal */
+.dash-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+}
+
+.dash-modal {
+  background: var(--white);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 520px;
+  margin: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dash-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.dash-modal-header h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--green-mid);
+}
+
+.dash-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--gray);
+  cursor: pointer;
+  padding: 4px;
+}
+
+.dash-modal-close:hover {
+  color: var(--dark);
+}
+
+.dash-modal form {
+  padding: 20px 24px;
+}
+
+.dash-form-group {
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.dash-form-group label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--gray);
+  margin-bottom: 4px;
+}
+
+.dash-form-group input,
+.dash-form-group textarea,
+.dash-form-group select {
+  padding: 9px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: var(--dark);
+  transition: border-color 0.15s;
+}
+
+.dash-form-group input:focus,
+.dash-form-group textarea:focus,
+.dash-form-group select:focus {
+  outline: none;
+  border-color: var(--green-mid);
+}
+
+.dash-form-row {
+  display: flex;
+  gap: 14px;
+}
+
+.dash-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.dash-btn-secondary {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--gray);
+  transition: all 0.15s;
+}
+
+.dash-btn-secondary:hover {
+  border-color: var(--gray);
+  color: var(--dark);
+}
+
+/* Customer Detail — Info Bar */
+.dash-contact-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dash-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.dash-contact-row i {
+  color: var(--gray);
+  font-size: 0.85rem;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.dash-contact-row a {
+  color: var(--dark);
+  text-decoration: none;
+}
+
+.dash-contact-row a:hover {
+  color: var(--green-mid);
+}
+
+.dash-contact-empty {
+  color: #bbb;
+  font-style: italic;
+}
+
+/* Customer Type Badges */
+.dash-badge--regular {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.dash-badge--oneoff {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+/* Notes Log */
+.dash-note-add {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.dash-note-add .dash-action-btn {
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.dash-notes-textarea {
+  width: 100%;
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  color: var(--dark);
+  resize: vertical;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.dash-notes-textarea:focus {
+  outline: none;
+  border-color: var(--green-mid);
+}
+
+.dash-notes-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.dash-note-item {
+  padding: 12px 0;
+  border-top: 1px solid #f0f0f0;
+}
+
+.dash-note-content {
+  font-size: 0.88rem;
+  color: var(--dark);
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.dash-note-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.dash-note-time {
+  font-size: 0.75rem;
+  color: var(--gray);
+}
+
+.dash-note-item--clickable {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 12px;
+  transition: background 0.15s;
+}
+
+.dash-note-item--clickable:hover {
+  background: #f5f5f5;
+}
+
+/* Note Job Title — shown above note body for job-linked notes */
+.dash-note-job-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #1565c0;
+  margin-bottom: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dash-note-job-title:hover {
+  text-decoration: underline;
+}
+
+.dash-note-job-title i {
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
+/* Modal Notes Section */
+.dash-modal-notes {
+  padding: 0 24px 20px;
+  border-top: 1px solid #e8e8e8;
+  margin-top: -4px;
+}
+
+.dash-modal-notes h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 16px 0 10px;
+}
+
+.dash-modal-notes .dash-notes-list {
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dash-modal-notes .dash-note-item {
+  padding: 8px 0;
+}
+
+.dash-modal-notes .dash-note-content {
+  font-size: 0.84rem;
+}
+
+/* Back Button */
+.dash-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gray);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 8px;
+  transition: color 0.15s;
+}
+
+.dash-back-btn:hover {
+  color: var(--green-mid);
+}
+
+/* Enquiry Cards */
+.dash-enquiries {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.dash-enquiry-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.dash-enquiry-card:hover {
+  border-color: var(--green-mid);
+}
+
+.dash-enquiry-name {
+  font-weight: 600;
+  color: var(--green-mid);
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.dash-enquiry-service {
+  color: var(--gray);
+  font-size: 0.82rem;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.dash-enquiry-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  color: var(--gray);
+}
+
+/* Mobile Hamburger */
+.dash-mobile-toggle {
+  display: none;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 200;
+  background: transparent;
+  color: var(--white);
+  border: none;
+  width: 36px;
+  height: 36px;
+  font-size: 1.3rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-overlay {
+  display: none;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .dash-stats {
+    flex-wrap: wrap;
+  }
+
+  .dash-stat-card {
+    min-width: 160px;
+  }
+
+  .dash-enquiries {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .dash-mobile-toggle {
+    display: flex;
+  }
+
+  .dash-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .dash-sidebar.open {
+    transform: translateX(0);
+  }
+
+  .dash-overlay.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    top: 52px;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 99;
+  }
+
+  .dash-main {
+    margin-left: 0;
+    padding: 20px 16px;
+  }
+
+  .dash-stats {
+    gap: 10px;
+  }
+
+  .dash-stat-card {
+    min-width: 140px;
+    padding: 12px 16px;
+  }
+
+  .dash-stat-value {
+    font-size: 1.2rem;
+  }
+
+  .dash-table th,
+  .dash-table td {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+
+  .dash-section {
+    padding: 14px 16px;
+  }
+}
+
+/* Invoice Preview Page */
+.dash-invoice-preview {
+  background: var(--white);
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+
+.dash-invoice-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.dash-invoice-header h1 {
+  font-size: 1.5rem;
+  color: var(--green-mid);
+  font-weight: 700;
+  margin: 0;
+}
+
+.dash-invoice-client {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dash-invoice-client h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 10px;
+}
+
+.dash-invoice-line {
+  padding: 20px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.dash-invoice-line p {
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+  color: var(--dark);
+}
+
+.dash-invoice-line span {
+  font-size: 0.8rem;
+  color: var(--gray);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.dash-invoice-payment {
+  padding: 16px 0;
+  border-top: 1px solid #e8e8e8;
+}
+
+.dash-invoice-payment h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.dash-invoice-dates {
+  display: flex;
+  gap: 24px;
+  padding: 16px 0;
+  font-size: 0.82rem;
+  color: var(--gray);
+  flex-wrap: wrap;
+}
+
+.dash-invoice-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid #e8e8e8;
+  margin-top: 8px;
+}
+
+.dash-invoice-actions .dash-action-btn,
+.dash-invoice-actions .dash-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Reference Notes Section */
+.dash-ref-notes {
+  background: var(--white);
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.dash-ref-notes-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dash-ref-notes-header .dash-section-title {
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .dash-stat-card {
+    min-width: 100%;
+  }
+
+  .dash-header h1 {
+    font-size: 1.25rem;
+  }
+}
