@@ -6,6 +6,7 @@ const navItems = [
   { to: '/dashboard', icon: 'fa-solid fa-chart-line', label: 'Dashboard', end: true },
   { to: '/dashboard/customers', icon: 'fa-solid fa-users', label: 'Customers' },
   { to: '/dashboard/jobs', icon: 'fa-solid fa-briefcase', label: 'Jobs' },
+  { to: '/dashboard/calendar', icon: 'fa-solid fa-calendar-days', label: 'Calendar' },
   { to: '/dashboard/services', icon: 'fa-solid fa-leaf', label: 'Services' },
   { to: '/dashboard/quotes', icon: 'fa-solid fa-file-invoice', label: 'Quotes' },
   { to: '/dashboard/invoices', icon: 'fa-solid fa-receipt', label: 'Invoices' },

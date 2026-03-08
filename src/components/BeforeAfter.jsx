@@ -90,6 +90,13 @@ export default function BeforeAfter() {
       afterAlt: 'Tidy garden bed after tidy-up',
       caption: 'Garden bed — overgrown retaining wall area cleared, trimmed back and mulched.',
     },
+    {
+      beforeSrc: '/photos/before-after/hedge-before.jpg',
+      afterSrc: '/photos/before-after/hedge-after.jpg',
+      beforeAlt: 'Overgrown hedge before trimming',
+      afterAlt: 'Neatly trimmed hedge after shaping',
+      caption: 'Hedge trim — overgrown front hedge shaped and tidied, clippings cleared.',
+    },
   ]
 
   return (

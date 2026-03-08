@@ -10,6 +10,7 @@ import Jobs from './pages/dashboard/Jobs'
 import JobDetail from './pages/dashboard/JobDetail'
 import Services from './pages/dashboard/Services'
 import Quotes from './pages/dashboard/Estimates'
+import Calendar from './pages/dashboard/Calendar'
 import Invoices from './pages/dashboard/Invoices'
 import InvoiceDetail from './pages/dashboard/InvoiceDetail'
 
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="customers/:id" element={<CustomerDetail />} />
           <Route path="jobs" element={<Jobs />} />
           <Route path="jobs/:id" element={<JobDetail />} />
+          <Route path="calendar" element={<Calendar />} />
           <Route path="services" element={<Services />} />
           <Route path="quotes" element={<Quotes />} />
           <Route path="invoices" element={<Invoices />} />
