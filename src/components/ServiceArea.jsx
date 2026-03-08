@@ -1,5 +1,5 @@
 export default function ServiceArea() {
-  const suburbs = ['Lynmore', 'Owhata', 'Springfield', 'Holdens Bay', 'Glenholme', 'Pukehangi', 'Tihi-Otonga']
+  const suburbs = ['Lynmore', 'Owhata', 'Springfield', 'Pukehangi']
 
   return (
     <section className="area">
