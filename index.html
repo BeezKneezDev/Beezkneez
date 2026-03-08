@@ -65,6 +65,16 @@
 </head>
 <body>
   <div id="root"></div>
+  <script>
+    // Handle SPA redirect from 404.html
+    (function() {
+      var q = new URLSearchParams(window.location.search);
+      var p = q.get('p');
+      if (p) {
+        window.history.replaceState(null, '', decodeURIComponent(p));
+      }
+    })();
+  </script>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
