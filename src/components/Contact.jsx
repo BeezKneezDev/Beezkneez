@@ -99,14 +99,26 @@ export default function Contact() {
     e.preventDefault()
     setSubmitting(true)
     try {
-      const res = await fetch('https://api.web3forms.com/submit', {
+      const form = formRef.current
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact`, {
         method: 'POST',
-        body: new FormData(formRef.current),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          name: form.name.value,
+          email: form.email.value,
+          phone: form.phone.value,
+          service: selectedService,
+          address: form.address.value,
+          message: form.message.value,
+        }),
       })
       const data = await res.json()
       if (data.success) {
         setToast("Message sent! I'll get back to you soon.")
-        formRef.current.reset()
+        form.reset()
         setSelectedService('')
       } else {
         setToast('Something went wrong. Please try again.')
@@ -161,8 +173,6 @@ export default function Contact() {
             <h3>Send a message</h3>
             <p>Free quotes, no obligation</p>
             <form ref={formRef} onSubmit={handleSubmit}>
-              <input type="hidden" name="access_key" value="52043fba-b3fc-41a1-a07e-6e0edf31b14d" />
-              <input type="hidden" name="subject" value="New enquiry from beezkneez.nz" />
               <input type="checkbox" name="botcheck" style={{ display: 'none' }} />
               <div className="form-group">
                 <label htmlFor="name">Name</label>
