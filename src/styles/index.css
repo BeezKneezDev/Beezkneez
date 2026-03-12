@@ -540,6 +540,18 @@ header.scrolled .header-buttons {
   font-size: 0.95rem;
 }
 
+.ba-cta {
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.ba-cta p {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--dark);
+  margin-bottom: 1.25rem;
+}
+
 /* Reviews */
 .reviews {
   padding: 6rem 2rem;
@@ -731,7 +743,8 @@ header.scrolled .header-buttons {
 }
 
 .about-text .btn {
-  margin-top: 1.5rem;
+  margin-top: 1rem;
+  display: inline-block;
 }
 
 @media (max-width: 700px) {
@@ -1068,6 +1081,34 @@ a.contact-method {
 .form-group textarea {
   resize: vertical;
   min-height: 120px;
+}
+
+.contact-pref-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.contact-pref-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  border: 2px solid var(--green-mid);
+  background: transparent;
+  color: var(--green-dark);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.contact-pref-btn:hover {
+  background: rgba(45, 90, 71, 0.08);
+}
+
+.contact-pref-btn.active {
+  background: var(--green-mid);
+  color: white;
+  border-color: var(--green-mid);
 }
 
 .contact-form-container .btn {

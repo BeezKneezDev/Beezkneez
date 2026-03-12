@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react'
 
-function Slider({ beforeSrc, afterSrc, beforeAlt, afterAlt, caption }) {
+function Slider({ beforeSrc, afterSrc, beforeAlt, afterAlt, caption, beforeOffset, afterOffset }) {
   const sliderRef = useRef(null)
   const beforeRef = useRef(null)
   const handleRef = useRef(null)
@@ -59,8 +59,8 @@ function Slider({ beforeSrc, afterSrc, beforeAlt, afterAlt, caption }) {
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <img className="ba-after" src={afterSrc} alt={afterAlt} loading="lazy" />
-        <img className="ba-before" src={beforeSrc} alt={beforeAlt} loading="lazy" ref={beforeRef} />
+        <img className="ba-after" src={afterSrc} alt={afterAlt} loading="lazy" style={afterOffset ? { objectPosition: `center calc(50% + ${afterOffset})` } : undefined} />
+        <img className="ba-before" src={beforeSrc} alt={beforeAlt} loading="lazy" ref={beforeRef} style={beforeOffset ? { objectPosition: `center calc(50% + ${beforeOffset})` } : undefined} />
         <span className="ba-label ba-label-before">Before</span>
         <span className="ba-label ba-label-after">After</span>
         <div className="ba-handle" ref={handleRef}>
@@ -77,24 +77,33 @@ function Slider({ beforeSrc, afterSrc, beforeAlt, afterAlt, caption }) {
 export default function BeforeAfter() {
   const sliders = [
     {
-      beforeSrc: '/photos/before-after/pathway-before.jpg',
-      afterSrc: '/photos/before-after/pathway-after.jpg',
-      beforeAlt: 'Overgrown side pathway before tidy-up',
-      afterAlt: 'Clean side pathway after tidy-up',
+      beforeSrc: '/photos/before-after/before-pathway-tidy-pukehangi-rotorua.jpg',
+      afterSrc: '/photos/before-after/after-pathway-tidy-pukehangi-rotorua.jpg',
+      beforeAlt: 'Overgrown side pathway before tidy-up in Pukehangi, Rotorua',
+      afterAlt: 'Clean side pathway after tidy-up in Pukehangi, Rotorua',
       caption: 'Side pathway — overgrown ferns and weeds cleared, pavers cleaned up and garden bed tidied.',
     },
     {
-      beforeSrc: '/photos/before-after/garden-bed-before.jpg',
-      afterSrc: '/photos/before-after/garden-bed-after.jpg',
-      beforeAlt: 'Overgrown garden bed before tidy-up',
-      afterAlt: 'Tidy garden bed after tidy-up',
+      beforeSrc: '/photos/before-after/before-lawn-mow-hillcrest-rotorua.jpg',
+      afterSrc: '/photos/before-after/after-lawn-mow-hillcrest-rotorua.jpg',
+      beforeAlt: 'Backyard lawn before mowing in Hillcrest, Rotorua',
+      afterAlt: 'Backyard lawn after mowing in Hillcrest, Rotorua',
+      beforeOffset: '20px',
+      afterOffset: '-10px',
+      caption: 'Backyard mow — gave this lawn a good tidy up, cleared the debris and got the edges looking sharp.',
+    },
+    {
+      beforeSrc: '/photos/before-after/before-garden-bed-tidy-pukehangi-rotorua.jpg',
+      afterSrc: '/photos/before-after/after-garden-bed-tidy-pukehangi-rotorua.jpg',
+      beforeAlt: 'Overgrown garden bed before tidy-up in Pukehangi, Rotorua',
+      afterAlt: 'Tidy garden bed after tidy-up in Pukehangi, Rotorua',
       caption: 'Garden bed — overgrown retaining wall area cleared, trimmed back and mulched.',
     },
     {
-      beforeSrc: '/photos/before-after/hedge-before.jpg',
-      afterSrc: '/photos/before-after/hedge-after.jpg',
-      beforeAlt: 'Overgrown hedge before trimming',
-      afterAlt: 'Neatly trimmed hedge after shaping',
+      beforeSrc: '/photos/before-after/before-hedge-trim-lynmore-rotorua.jpg',
+      afterSrc: '/photos/before-after/after-hedge-trim-lynmore-rotorua.jpg',
+      beforeAlt: 'Overgrown hedge before trimming in Lynmore, Rotorua',
+      afterAlt: 'Neatly trimmed hedge after shaping in Lynmore, Rotorua',
       caption: 'Hedge trim — overgrown front hedge shaped and tidied, clippings cleared.',
     },
   ]
@@ -110,6 +119,10 @@ export default function BeforeAfter() {
           {sliders.map((s, i) => (
             <Slider key={i} {...s} />
           ))}
+        </div>
+        <div className="ba-cta animate-in">
+          <p>Want your property looking this good?</p>
+          <a href="#contact" className="btn btn-primary">Get a Free Quote</a>
         </div>
       </div>
     </section>

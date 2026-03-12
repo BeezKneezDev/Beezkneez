@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 export default function Contact() {
   const [selectOpen, setSelectOpen] = useState(false)
   const [selectedService, setSelectedService] = useState('')
+  const [preferredContact, setPreferredContact] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [toast, setToast] = useState(null)
   const [suggestions, setSuggestions] = useState([])
@@ -113,6 +114,7 @@ export default function Contact() {
           service: selectedService,
           address: form.address.value,
           message: form.message.value,
+          preferredContact: preferredContact,
         }),
       })
       const data = await res.json()
@@ -120,6 +122,7 @@ export default function Contact() {
         setToast("Message sent! I'll get back to you soon.")
         form.reset()
         setSelectedService('')
+        setPreferredContact('')
       } else {
         setToast('Something went wrong. Please try again.')
       }
@@ -238,6 +241,22 @@ export default function Contact() {
                     </div>
                   ))}
                 </div>
+              </div>
+              <div className="form-group">
+                <label>Preferred contact method</label>
+                <div className="contact-pref-options">
+                  {['Text', 'Call', 'Email', 'WhatsApp'].map((method) => (
+                    <button
+                      type="button"
+                      key={method}
+                      className={`contact-pref-btn${preferredContact === method ? ' active' : ''}`}
+                      onClick={() => setPreferredContact(method)}
+                    >
+                      {method}
+                    </button>
+                  ))}
+                </div>
+                <input type="hidden" name="preferredContact" value={preferredContact} />
               </div>
               <div className="form-group">
                 <label htmlFor="message">Message</label>
