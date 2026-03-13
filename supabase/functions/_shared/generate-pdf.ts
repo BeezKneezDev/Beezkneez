@@ -72,8 +72,10 @@ export async function generateInvoicePdf(invoice: any, customer: any): Promise<U
 
   y = height - headerHeight - 36
 
+  const isPaid = invoice.status === 'paid'
+
   // --- Invoice title ---
-  page.drawText(`Invoice ${invoice.invoice_number}`, {
+  page.drawText(`${isPaid ? 'Receipt' : 'Invoice'} ${invoice.invoice_number}`, {
     x: margin, y,
     size: 18,
     font: helveticaBold,
@@ -283,83 +285,94 @@ export async function generateInvoicePdf(invoice: any, customer: any): Promise<U
     y -= 30
   }
 
-  // --- Payment Details box ---
-  const boxHeight = 110
-  const boxTop = y
-  page.drawRectangle({
-    x: margin,
-    y: boxTop - boxHeight,
-    width: tableRight - margin,
-    height: boxHeight,
-    color: rgb(0.97, 0.97, 0.97),
-    borderColor: lightGray,
-    borderWidth: 1,
-  })
-
-  let payY = boxTop - 16
-  page.drawText('Payment Details', {
-    x: margin + 12, y: payY,
-    size: 11,
-    font: helveticaBold,
-    color: black,
-  })
-  payY -= 20
-  page.drawText('Name: Beezkneez Lawns & Property Care', {
-    x: margin + 12, y: payY,
-    size: 10,
-    font: helvetica,
-    color: black,
-  })
-  payY -= 16
-  page.drawText('Bank: Kiwibank', {
-    x: margin + 12, y: payY,
-    size: 10,
-    font: helvetica,
-    color: black,
-  })
-  payY -= 16
-  page.drawText('Account: 38-9024-0138160-00', {
-    x: margin + 12, y: payY,
-    size: 10,
-    font: helvetica,
-    color: black,
-  })
-  payY -= 16
-  page.drawText(`Reference: ${invoice.invoice_number}`, {
-    x: margin + 12, y: payY,
-    size: 10,
-    font: helvetica,
-    color: black,
-  })
-
-  y = boxTop - boxHeight - 20
-
-  // --- Due date ---
-  const dueDate = invoice.due_date
-    ? new Date(invoice.due_date).toLocaleDateString('en-NZ', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
-    : null
-  if (dueDate) {
-    page.drawText(`Due by: ${dueDate}`, {
+  if (isPaid) {
+    // --- Paid banner ---
+    page.drawText('Paid — Thank you!', {
       x: margin, y,
-      size: 10,
+      size: 11,
+      font: helveticaBold,
+      color: green,
+    })
+    y -= 30
+  } else {
+    // --- Payment Details box ---
+    const boxHeight = 110
+    const boxTop = y
+    page.drawRectangle({
+      x: margin,
+      y: boxTop - boxHeight,
+      width: tableRight - margin,
+      height: boxHeight,
+      color: rgb(0.97, 0.97, 0.97),
+      borderColor: lightGray,
+      borderWidth: 1,
+    })
+
+    let payY = boxTop - 16
+    page.drawText('Payment Details', {
+      x: margin + 12, y: payY,
+      size: 11,
       font: helveticaBold,
       color: black,
     })
-    y -= 24
-  }
+    payY -= 20
+    page.drawText('Name: Beezkneez Lawns & Property Care', {
+      x: margin + 12, y: payY,
+      size: 10,
+      font: helvetica,
+      color: black,
+    })
+    payY -= 16
+    page.drawText('Bank: Kiwibank', {
+      x: margin + 12, y: payY,
+      size: 10,
+      font: helvetica,
+      color: black,
+    })
+    payY -= 16
+    page.drawText('Account: 38-9024-0138160-00', {
+      x: margin + 12, y: payY,
+      size: 10,
+      font: helvetica,
+      color: black,
+    })
+    payY -= 16
+    page.drawText(`Reference: ${invoice.invoice_number}`, {
+      x: margin + 12, y: payY,
+      size: 10,
+      font: helvetica,
+      color: black,
+    })
 
-  // --- Footer note ---
-  page.drawText('Please use the invoice number as your payment reference.', {
-    x: margin, y,
-    size: 9,
-    font: helvetica,
-    color: gray,
-  })
-  y -= 30
+    y = boxTop - boxHeight - 20
+
+    // --- Due date ---
+    const dueDate = invoice.due_date
+      ? new Date(invoice.due_date).toLocaleDateString('en-NZ', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        })
+      : null
+    if (dueDate) {
+      page.drawText(`Due by: ${dueDate}`, {
+        x: margin, y,
+        size: 10,
+        font: helveticaBold,
+        color: black,
+      })
+      y -= 24
+    }
+
+    // --- Footer note ---
+    page.drawText('Please use the invoice number as your payment reference.', {
+      x: margin, y,
+      size: 9,
+      font: helvetica,
+      color: gray,
+    })
+    y -= 30
+  }
 
   // --- Sign-off ---
   page.drawText('Cheers,', {

@@ -969,6 +969,49 @@
   gap: 6px;
 }
 
+/* Activity Feed */
+.dash-invoice-activity {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e8e8e8;
+}
+
+.dash-invoice-activity h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 12px;
+}
+
+.dash-activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dash-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.dash-activity-item i {
+  width: 20px;
+  text-align: center;
+  color: var(--green-mid);
+  font-size: 0.75rem;
+}
+
+.dash-activity-time {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: #999;
+}
+
 /* Reference Notes Section */
 .dash-ref-notes {
   background: var(--white);

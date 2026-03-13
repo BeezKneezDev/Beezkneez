@@ -182,7 +182,7 @@ serve(async (req) => {
         subject: `${isPaid ? 'Receipt' : 'Invoice'} ${invoice.invoice_number} — Beezkneez Lawns & Property Care`,
         html,
         attachments: [{
-          filename: `Invoice-${invoice.invoice_number}.pdf`,
+          filename: `${isPaid ? 'Receipt' : 'Invoice'}-${invoice.invoice_number}.pdf`,
           path: signed.signedUrl,
         }],
       }),

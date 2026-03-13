@@ -125,7 +125,7 @@ export default function Invoices() {
       await supabase.from('invoices').update(payload).eq('id', editing.id)
     } else {
       const invoiceNumber = await generateInvoiceNumber()
-      await supabase.from('invoices').insert({ ...payload, invoice_number: invoiceNumber })
+      await supabase.from('invoices').insert({ ...payload, invoice_number: invoiceNumber, activity: [{ type: 'created', at: new Date().toISOString() }] })
     }
 
     setSaving(false)

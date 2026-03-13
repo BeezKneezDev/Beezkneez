@@ -107,10 +107,12 @@ export default function InvoiceDetail() {
     }
   }, [invoice])
 
-  function openEmailModal() {
-    const isCash = invoice.payment_method === 'cash'
-    const isPaid = invoice.status === 'paid'
-    const isReceipt = isCash || isPaid
+  function addActivity(type, detail) {
+    return [...(invoice.activity || []), { type, at: new Date().toISOString(), ...(detail ? { detail } : {}) }]
+  }
+
+  function openEmailModal(mode) {
+    const isReceipt = mode === 'receipt'
     const defaultBody = isReceipt
       ? `Hi ${customer?.name || 'there'},\n\nThanks for your payment! Here is your receipt for your records. A PDF copy is also attached.`
       : `Hi ${customer?.name || 'there'},\n\nPlease find your invoice below. A PDF copy is also attached.`
@@ -119,18 +121,18 @@ export default function InvoiceDetail() {
       to: customer?.email || '',
       subject: `${isReceipt ? 'Receipt' : 'Invoice'} ${invoice.invoice_number} — Beezkneez Lawns & Property Care`,
       body: defaultBody,
+      mode,
     })
     setShowEmailModal(true)
   }
 
-  async function handleSendInvoice(e) {
+  async function handleSendEmail(e) {
     if (e) e.preventDefault()
     setSending(true)
+    const isReceipt = emailForm.mode === 'receipt'
+
     try {
-      // For cash drafts, tell the edge function it's a receipt
-      const invoicePayload = invoice.payment_method === 'cash' && invoice.status === 'draft'
-        ? { ...invoice, status: 'paid' }
-        : invoice
+      const invoicePayload = isReceipt ? { ...invoice, status: 'paid' } : invoice
       const { error: fnError } = await supabase.functions.invoke('send-invoice', {
         body: { invoice: invoicePayload, customer, message: emailForm.body },
       })
@@ -140,43 +142,42 @@ export default function InvoiceDetail() {
       setSending(false)
       return
     }
-    // Update status based on payment method
-    if (invoice.status === 'draft') {
-      const isCash = invoice.payment_method === 'cash'
-      const update = isCash
-        ? { status: 'paid', sent_at: new Date().toISOString(), paid_at: new Date().toISOString() }
-        : { status: 'sent', sent_at: new Date().toISOString() }
+
+    // Update invoice based on what we sent
+    const now = new Date().toISOString()
+    const activity = addActivity(isReceipt ? 'receipt_sent' : 'sent')
+
+    if (isReceipt) {
+      // Sending receipt — just log it, don't change status
       const { data } = await supabase.from('invoices')
-        .update(update)
-        .eq('id', id)
-        .select()
-        .single()
+        .update({ sent_at: now, activity })
+        .eq('id', id).select().single()
+      if (data) setInvoice(data)
+    } else if (invoice.status === 'draft') {
+      // First send — mark as sent
+      const { data } = await supabase.from('invoices')
+        .update({ status: 'sent', sent_at: now, activity })
+        .eq('id', id).select().single()
+      if (data) setInvoice(data)
+    } else {
+      // Resend — just log activity
+      const { data } = await supabase.from('invoices')
+        .update({ activity })
+        .eq('id', id).select().single()
       if (data) setInvoice(data)
     }
+
     setSending(false)
     setShowEmailModal(false)
   }
 
-  async function handleSendReminder() {
-    setUpdating(true)
-    try {
-      const { error: fnError } = await supabase.functions.invoke('send-reminder', {
-        body: { invoice, customer },
-      })
-      if (fnError) throw new Error(fnError.message || 'Unknown error')
-    } catch (e) {
-      alert('Failed to send reminder: ' + e.message)
-    }
-    setUpdating(false)
-  }
-
   async function handleMarkPaid() {
     setUpdating(true)
+    const now = new Date().toISOString()
+    const activity = addActivity('paid')
     const { data } = await supabase.from('invoices')
-      .update({ status: 'paid', paid_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single()
+      .update({ status: 'paid', paid_at: now, activity })
+      .eq('id', id).select().single()
     if (data) setInvoice(data)
     setUpdating(false)
   }
@@ -282,9 +283,6 @@ export default function InvoiceDetail() {
         <div className="dash-invoice-header">
           <h1>{invoice.invoice_number}</h1>
           <span className={badgeClass(invoice.status)}>{invoice.status}</span>
-          {invoice.payment_method === 'cash' && invoice.status === 'draft' && (
-            <span className="dash-badge dash-badge--completed">paid</span>
-          )}
           <span style={{ fontSize: '0.85rem', color: '#888', marginLeft: 'auto' }}>{formatDate(invoice.created_at)}</span>
         </div>
 
@@ -502,53 +500,74 @@ export default function InvoiceDetail() {
           </p>
         </div>
 
-        {/* Date Info */}
-        {(invoice.sent_at || invoice.paid_at) && (
-          <div className="dash-invoice-dates">
-            {invoice.sent_at && <span>Sent: {formatDate(invoice.sent_at)}</span>}
-            {invoice.paid_at && <span>Paid: {formatDate(invoice.paid_at)}{invoice.payment_method ? ` (${invoice.payment_method})` : ''}</span>}
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div className="dash-invoice-actions">
           {invoice.status === 'draft' && (
-            <button className="dash-action-btn" onClick={openEmailModal} disabled={updating}>
-              <i className="fa-solid fa-paper-plane"></i> {invoice.payment_method === 'cash' ? 'Send Receipt' : 'Send Invoice'}
-            </button>
-          )}
-          {invoice.status === 'sent' && (
             <>
-              <button className="dash-action-btn" onClick={handleMarkPaid} disabled={updating}>
-                <i className="fa-solid fa-check"></i> {updating ? 'Updating...' : 'Mark as Paid'}
+              <button className="dash-action-btn" onClick={() => openEmailModal('invoice')} disabled={updating}>
+                <i className="fa-solid fa-paper-plane"></i> Send Invoice
               </button>
-              <button className="dash-btn-secondary" onClick={openEmailModal} disabled={updating}>
-                <i className="fa-solid fa-paper-plane"></i> Resend Invoice
+              <button className="dash-btn-secondary" onClick={handleMarkPaid} disabled={updating}>
+                <i className="fa-solid fa-money-bill"></i> {updating ? 'Updating...' : 'Paid'}
               </button>
             </>
           )}
-          {invoice.status === 'overdue' && (
+          {(invoice.status === 'sent' || invoice.status === 'overdue') && (
             <>
               <button className="dash-action-btn" onClick={handleMarkPaid} disabled={updating}>
-                <i className="fa-solid fa-check"></i> {updating ? 'Updating...' : 'Mark as Paid'}
+                <i className="fa-solid fa-money-bill"></i> {updating ? 'Updating...' : 'Paid'}
               </button>
-              <button className="dash-btn-secondary" onClick={openEmailModal} disabled={updating}>
-                <i className="fa-solid fa-paper-plane"></i> Resend Invoice
+              <button className="dash-btn-secondary" onClick={() => openEmailModal('invoice')} disabled={updating}>
+                <i className="fa-solid fa-paper-plane"></i> Send Again
               </button>
             </>
           )}
-          {invoice.status === 'paid' && (
-            invoice.sent_at ? (
-              <button className="dash-btn-secondary" onClick={openEmailModal}>
+          {invoice.status === 'paid' && (() => {
+            const receiptSent = (invoice.activity || []).some(a => a.type === 'receipt_sent')
+            return receiptSent ? (
+              <button className="dash-btn-secondary" onClick={() => openEmailModal('receipt')}>
                 <i className="fa-solid fa-paper-plane"></i> Resend Receipt
               </button>
             ) : (
-              <button className="dash-action-btn" onClick={openEmailModal}>
+              <button className="dash-action-btn" onClick={() => openEmailModal('receipt')}>
                 <i className="fa-solid fa-paper-plane"></i> Send Receipt
               </button>
             )
-          )}
+          })()}
         </div>
+
+        {/* Activity Feed */}
+        {(invoice.activity || []).length > 0 && (
+          <div className="dash-invoice-activity">
+            <h3>Activity</h3>
+            <div className="dash-activity-feed">
+              {[...(invoice.activity || [])].reverse().map((event, i) => {
+                const labels = {
+                  created: 'Invoice created',
+                  job_added: `Job added${event.detail ? `: ${event.detail}` : ''}`,
+                  sent: 'Invoice sent',
+                  paid: 'Payment received',
+                  receipt_sent: 'Receipt sent',
+                }
+                const icons = {
+                  created: 'fa-file-circle-plus',
+                  job_added: 'fa-plus',
+                  sent: 'fa-paper-plane',
+                  paid: 'fa-money-bill',
+                  receipt_sent: 'fa-receipt',
+                }
+                return (
+                  <div key={i} className="dash-activity-item">
+                    <i className={`fa-solid ${icons[event.type] || 'fa-circle'}`}></i>
+                    <span>{labels[event.type] || event.type}</span>
+                    <span className="dash-activity-time">{formatTimestamp(event.at)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Reference Notes */}
@@ -728,12 +747,12 @@ export default function InvoiceDetail() {
         <div className="dash-modal-overlay" onClick={() => setShowEmailModal(false)}>
           <div className="dash-modal" onClick={e => e.stopPropagation()}>
             <div className="dash-modal-header">
-              <h3>{(invoice.payment_method === 'cash' || invoice.status === 'paid') ? 'Send Receipt' : 'Send Invoice'}</h3>
+              <h3>{emailForm.mode === 'receipt' ? 'Send Receipt' : 'Send Invoice'}</h3>
               <button className="dash-modal-close" onClick={() => setShowEmailModal(false)}>
                 <i className="fa-solid fa-xmark"></i>
               </button>
             </div>
-            <form onSubmit={handleSendInvoice}>
+            <form onSubmit={handleSendEmail}>
               <div className="dash-form-group">
                 <label>To</label>
                 <input

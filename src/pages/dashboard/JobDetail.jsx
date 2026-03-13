@@ -188,7 +188,7 @@ export default function JobDetail() {
     return 'INV-001'
   }
 
-  function handleCompleteAndInvoice(paymentMethod) {
+  function handleCompleteAndInvoice() {
     // Warn if invoicing well before scheduled date
     if (isRecurring && job.scheduled_date) {
       const today = new Date()
@@ -197,18 +197,18 @@ export default function JobDetail() {
       scheduled.setHours(0, 0, 0, 0)
       const daysEarly = Math.round((scheduled - today) / (1000 * 60 * 60 * 24))
       if (daysEarly > 1) {
-        setEarlyWarning({ date: job.scheduled_date, days: daysEarly, paymentMethod })
+        setEarlyWarning({ date: job.scheduled_date, days: daysEarly })
         return
       }
     }
-    proceedWithInvoice(paymentMethod)
+    proceedWithInvoice()
   }
 
-  async function proceedWithInvoice(paymentMethod) {
+
+
+  async function proceedWithInvoice() {
     setEarlyWarning(null)
     setCompleting(true)
-
-    const isCash = paymentMethod === 'cash'
 
     const newLineItems = [
       { description: job.description || serviceName, amount: job.amount || 0, job_id: id },
@@ -223,10 +223,12 @@ export default function JobDetail() {
       const mergedItems = [...existingItems, ...newLineItems]
       const totalAmount = mergedItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
       const description = mergedItems.map(li => li.description).filter(Boolean).join(', ') || null
+      const existingActivity = draftInvoice.activity || []
       const { data: updated, error } = await supabase.from('invoices').update({
         line_items: mergedItems,
         amount: totalAmount,
         description,
+        activity: [...existingActivity, { type: 'job_added', at: new Date().toISOString(), detail: serviceName }],
       }).eq('id', draftInvoice.id).select().single()
       if (error) {
         alert('Failed to update invoice: ' + error.message)
@@ -248,9 +250,7 @@ export default function JobDetail() {
         description: job.description || serviceName,
         status: 'draft',
         due_date: dueDate.toISOString().split('T')[0],
-      }
-      if (isCash) {
-        invoiceData.payment_method = 'cash'
+        activity: [{ type: 'created', at: new Date().toISOString() }],
       }
       const { data: newInvoice, error } = await supabase.from('invoices').insert(invoiceData).select().single()
       if (error) {
@@ -336,14 +336,9 @@ export default function JobDetail() {
           <i className="fa-solid fa-pen-to-square"></i>
         </button>
         {canCompleteAndInvoice && (
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button className="dash-action-btn" onClick={() => handleCompleteAndInvoice()} disabled={completing}>
-              <i className="fa-solid fa-file-invoice-dollar"></i> {completing ? 'Adding...' : isRecurring ? 'Invoice & Schedule Next' : draftInvoice ? 'Complete & Add to Invoice' : 'Complete & Create Invoice'}
-            </button>
-            <button className="dash-action-btn" style={{ background: '#2d8a4e' }} onClick={() => handleCompleteAndInvoice('cash')} disabled={completing}>
-              <i className="fa-solid fa-circle-check"></i> {completing ? 'Adding...' : isRecurring ? 'Paid & Schedule Next' : draftInvoice ? 'Paid & Add to Invoice' : 'Paid & Create Invoice'}
-            </button>
-          </div>
+          <button className="dash-action-btn" style={{ marginLeft: 'auto' }} onClick={handleCompleteAndInvoice} disabled={completing}>
+            <i className="fa-solid fa-file-invoice-dollar"></i> {completing ? 'Working...' : isRecurring ? (draftInvoice ? 'Add to Invoice & Schedule' : 'Invoice & Schedule') : (draftInvoice ? 'Complete & Add to Invoice' : 'Invoice & Complete')}
+          </button>
         )}
       </div>
 
@@ -615,7 +610,7 @@ export default function JobDetail() {
             </div>
             <div className="dash-modal-actions" style={{ margin: '8px 24px 20px' }}>
               <button className="dash-btn-secondary" onClick={() => setEarlyWarning(null)}>Cancel</button>
-              <button className="dash-action-btn" onClick={() => proceedWithInvoice(earlyWarning.paymentMethod)}>Invoice Anyway</button>
+              <button className="dash-action-btn" onClick={() => proceedWithInvoice()}>Invoice Anyway</button>
             </div>
           </div>
         </div>
