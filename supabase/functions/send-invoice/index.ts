@@ -7,6 +7,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+function shortAddress(addr: string | null | undefined): string {
+  if (!addr) return ''
+  const parts = addr
+    .replace(/,?\s*(Australia|New Zealand)\s*$/i, '')
+    .replace(/,?\s*\d{4,5}\s*$/, '')
+    .replace(/,?\s*(Bay of Plenty|Waikato|Canterbury|Otago|Hawke's Bay|Manawat[uū\u016b][-–]Whanganui|Taranaki|Southland|Northland|Gisborne|Marlborough|Nelson|West Coast|Tasman)\s*/gi, '')
+    .replace(/\s+Lakes?\s+District/gi, '')
+    .replace(/\s+District/gi, '')
+    .split(',')
+    .map((s: string) => s.trim())
+    .filter(Boolean)
+  if (parts.length <= 2) return parts.join(', ')
+  return `${parts[0]}, ${parts[1]} ${parts[parts.length - 1]}`
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -16,7 +31,14 @@ serve(async (req) => {
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
     if (!RESEND_API_KEY) throw new Error('Missing RESEND_API_KEY')
 
-    const { invoice, customer } = await req.json()
+    const EMAIL_OVERRIDE = Deno.env.get('EMAIL_OVERRIDE')
+
+    const { invoice, customer, message } = await req.json()
+
+    const recipientEmail = EMAIL_OVERRIDE || customer?.email
+    if (!recipientEmail) throw new Error('No recipient email — customer has no email address')
+
+    const isPaid = invoice.status === 'paid'
 
     const dueDate = invoice.due_date
       ? new Date(invoice.due_date).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -106,17 +128,20 @@ serve(async (req) => {
           <h1 style="color: #fff; margin: 0; font-size: 1.4rem;">Beezkneez Lawns &amp; Property Care</h1>
         </div>
         <div style="border: 1px solid #e0e0e0; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;">
-          <h2 style="margin-top: 0; color: #2d5a27;">Invoice ${invoice.invoice_number}</h2>
+          <h2 style="margin-top: 0; color: #2d5a27;">${isPaid ? 'Receipt' : 'Invoice'} ${invoice.invoice_number}</h2>
           ${invoiceDate ? `<p style="margin: 4px 0; color: #888; font-size: 0.9rem;">Date: ${invoiceDate}</p>` : ''}
+          ${isPaid ? '<p style="margin: 8px 0; padding: 8px 12px; background: #d4edda; color: #155724; border-radius: 4px; font-weight: 600;">Paid — Thank you!</p>' : ''}
 
-          <p>Hi ${customer?.name || 'there'},</p>
-          <p>Please find your invoice below. A PDF copy is also attached.</p>
+          ${message
+            ? message.split('\n').map((line: string) => `<p>${line || '&nbsp;'}</p>`).join('')
+            : `<p>Hi ${customer?.name || 'there'},</p>
+          <p>${isPaid ? 'Thanks for your payment! Here is your receipt for your records. A PDF copy is also attached.' : 'Please find your invoice below. A PDF copy is also attached.'}</p>`}
 
-          ${customer?.address ? `<p style="margin: 4px 0; color: #555;"><strong>Property:</strong> ${customer.address}</p>` : ''}
+          ${customer?.address ? `<p style="margin: 4px 0; color: #555;"><strong>Property:</strong> ${shortAddress(customer.address)}</p>` : ''}
 
           ${tableHtml}
 
-          <div style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; margin: 20px 0;">
+          ${isPaid ? '' : `<div style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; margin: 20px 0;">
             <h3 style="margin-top: 0; font-size: 0.95rem;">Payment Details</h3>
             <p style="margin: 4px 0;"><strong>Name:</strong> Beezkneez Lawns &amp; Property Care</p>
             <p style="margin: 4px 0;"><strong>Bank:</strong> Kiwibank</p>
@@ -124,7 +149,7 @@ serve(async (req) => {
             <p style="margin: 4px 0;"><strong>Reference:</strong> ${invoice.invoice_number}</p>
           </div>
 
-          <p style="color: #888; font-size: 0.85rem;">Please use the invoice number as your payment reference.${dueDate ? `<br/>Payment due by <strong style="color: #333;">${dueDate}</strong>.` : ''}</p>
+          <p style="color: #888; font-size: 0.85rem;">Please use the invoice number as your payment reference.${dueDate ? `<br/>Payment due by <strong style="color: #333;">${dueDate}</strong>.` : ''}</p>`}
           <p style="margin-top: 24px;">Cheers,<br/>Byron<br/>Beezkneez Lawns &amp; Property Care</p>
         </div>
       </div>
@@ -153,8 +178,8 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'Beezkneez Lawns & Property Care <invoices@beezkneez.nz>',
-        to: 'byron@beezkneez.nz',
-        subject: `Invoice ${invoice.invoice_number} — Beezkneez Lawns & Property Care`,
+        to: recipientEmail,
+        subject: `${isPaid ? 'Receipt' : 'Invoice'} ${invoice.invoice_number} — Beezkneez Lawns & Property Care`,
         html,
         attachments: [{
           filename: `Invoice-${invoice.invoice_number}.pdf`,

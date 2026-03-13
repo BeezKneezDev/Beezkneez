@@ -4,14 +4,14 @@ import { supabase } from '../../lib/supabase'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function formatTimestamp(dateStr) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) +
-    ' at ' + d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }) +
+    ' at ' + d.toLocaleTimeString('en-NZ', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 function formatCurrency(amount) {
@@ -43,6 +43,11 @@ export default function InvoiceDetail() {
   const [customers, setCustomers] = useState([])
   const [editForm, setEditForm] = useState({ customer_id: '', line_items: [{ description: '', amount: '' }], status: 'draft', due_date: '', discount_percent: 0 })
   const [saving, setSaving] = useState(false)
+
+  // Email modal state
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailForm, setEmailForm] = useState({ to: '', subject: '', body: '' })
+  const [sending, setSending] = useState(false)
 
   // Inline draft editing
   const [draftItems, setDraftItems] = useState([])
@@ -102,52 +107,63 @@ export default function InvoiceDetail() {
     }
   }, [invoice])
 
-  async function handleSendInvoice() {
-    setUpdating(true)
-    // Send email via edge function
+  function openEmailModal() {
+    const isCash = invoice.payment_method === 'cash'
+    const isPaid = invoice.status === 'paid'
+    const isReceipt = isCash || isPaid
+    const defaultBody = isReceipt
+      ? `Hi ${customer?.name || 'there'},\n\nThanks for your payment! Here is your receipt for your records. A PDF copy is also attached.`
+      : `Hi ${customer?.name || 'there'},\n\nPlease find your invoice below. A PDF copy is also attached.`
+
+    setEmailForm({
+      to: customer?.email || '',
+      subject: `${isReceipt ? 'Receipt' : 'Invoice'} ${invoice.invoice_number} — Beezkneez Lawns & Property Care`,
+      body: defaultBody,
+    })
+    setShowEmailModal(true)
+  }
+
+  async function handleSendInvoice(e) {
+    if (e) e.preventDefault()
+    setSending(true)
     try {
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-invoice`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ invoice, customer }),
+      // For cash drafts, tell the edge function it's a receipt
+      const invoicePayload = invoice.payment_method === 'cash' && invoice.status === 'draft'
+        ? { ...invoice, status: 'paid' }
+        : invoice
+      const { error: fnError } = await supabase.functions.invoke('send-invoice', {
+        body: { invoice: invoicePayload, customer, message: emailForm.body },
       })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Unknown error')
-      }
+      if (fnError) throw new Error(fnError.message || 'Unknown error')
     } catch (e) {
       alert('Failed to send email: ' + e.message)
-      setUpdating(false)
+      setSending(false)
       return
     }
-    // Mark as sent
-    const { data } = await supabase.from('invoices')
-      .update({ status: 'sent', sent_at: new Date().toISOString() })
-      .eq('id', id)
-      .select()
-      .single()
-    if (data) setInvoice(data)
-    setUpdating(false)
+    // Update status based on payment method
+    if (invoice.status === 'draft') {
+      const isCash = invoice.payment_method === 'cash'
+      const update = isCash
+        ? { status: 'paid', sent_at: new Date().toISOString(), paid_at: new Date().toISOString() }
+        : { status: 'sent', sent_at: new Date().toISOString() }
+      const { data } = await supabase.from('invoices')
+        .update(update)
+        .eq('id', id)
+        .select()
+        .single()
+      if (data) setInvoice(data)
+    }
+    setSending(false)
+    setShowEmailModal(false)
   }
 
   async function handleSendReminder() {
     setUpdating(true)
     try {
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-reminder`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ invoice, customer }),
+      const { error: fnError } = await supabase.functions.invoke('send-reminder', {
+        body: { invoice, customer },
       })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error || 'Unknown error')
-      }
+      if (fnError) throw new Error(fnError.message || 'Unknown error')
     } catch (e) {
       alert('Failed to send reminder: ' + e.message)
     }
@@ -266,6 +282,9 @@ export default function InvoiceDetail() {
         <div className="dash-invoice-header">
           <h1>{invoice.invoice_number}</h1>
           <span className={badgeClass(invoice.status)}>{invoice.status}</span>
+          {invoice.payment_method === 'cash' && invoice.status === 'draft' && (
+            <span className="dash-badge dash-badge--completed">paid</span>
+          )}
           <span style={{ fontSize: '0.85rem', color: '#888', marginLeft: 'auto' }}>{formatDate(invoice.created_at)}</span>
         </div>
 
@@ -487,15 +506,15 @@ export default function InvoiceDetail() {
         {(invoice.sent_at || invoice.paid_at) && (
           <div className="dash-invoice-dates">
             {invoice.sent_at && <span>Sent: {formatDate(invoice.sent_at)}</span>}
-            {invoice.paid_at && <span>Paid: {formatDate(invoice.paid_at)}</span>}
+            {invoice.paid_at && <span>Paid: {formatDate(invoice.paid_at)}{invoice.payment_method ? ` (${invoice.payment_method})` : ''}</span>}
           </div>
         )}
 
         {/* Action Buttons */}
         <div className="dash-invoice-actions">
           {invoice.status === 'draft' && (
-            <button className="dash-action-btn" onClick={handleSendInvoice} disabled={updating}>
-              <i className="fa-solid fa-paper-plane"></i> {updating ? 'Sending...' : 'Send Invoice'}
+            <button className="dash-action-btn" onClick={openEmailModal} disabled={updating}>
+              <i className="fa-solid fa-paper-plane"></i> {invoice.payment_method === 'cash' ? 'Send Receipt' : 'Send Invoice'}
             </button>
           )}
           {invoice.status === 'sent' && (
@@ -503,8 +522,8 @@ export default function InvoiceDetail() {
               <button className="dash-action-btn" onClick={handleMarkPaid} disabled={updating}>
                 <i className="fa-solid fa-check"></i> {updating ? 'Updating...' : 'Mark as Paid'}
               </button>
-              <button className="dash-btn-secondary" onClick={handleSendInvoice} disabled={updating}>
-                <i className="fa-solid fa-paper-plane"></i> {updating ? 'Sending...' : 'Resend Invoice'}
+              <button className="dash-btn-secondary" onClick={openEmailModal} disabled={updating}>
+                <i className="fa-solid fa-paper-plane"></i> Resend Invoice
               </button>
             </>
           )}
@@ -513,10 +532,21 @@ export default function InvoiceDetail() {
               <button className="dash-action-btn" onClick={handleMarkPaid} disabled={updating}>
                 <i className="fa-solid fa-check"></i> {updating ? 'Updating...' : 'Mark as Paid'}
               </button>
-              <button className="dash-btn-secondary" onClick={handleSendInvoice} disabled={updating}>
-                <i className="fa-solid fa-paper-plane"></i> {updating ? 'Sending...' : 'Resend Invoice'}
+              <button className="dash-btn-secondary" onClick={openEmailModal} disabled={updating}>
+                <i className="fa-solid fa-paper-plane"></i> Resend Invoice
               </button>
             </>
+          )}
+          {invoice.status === 'paid' && (
+            invoice.sent_at ? (
+              <button className="dash-btn-secondary" onClick={openEmailModal}>
+                <i className="fa-solid fa-paper-plane"></i> Resend Receipt
+              </button>
+            ) : (
+              <button className="dash-action-btn" onClick={openEmailModal}>
+                <i className="fa-solid fa-paper-plane"></i> Send Receipt
+              </button>
+            )
           )}
         </div>
       </div>
@@ -687,6 +717,57 @@ export default function InvoiceDetail() {
                 <button type="button" className="dash-btn-secondary" onClick={() => setShowEdit(false)}>Cancel</button>
                 <button type="submit" className="dash-action-btn" disabled={saving}>
                   {saving ? 'Saving...' : 'Update'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEmailModal && (
+        <div className="dash-modal-overlay" onClick={() => setShowEmailModal(false)}>
+          <div className="dash-modal" onClick={e => e.stopPropagation()}>
+            <div className="dash-modal-header">
+              <h3>{(invoice.payment_method === 'cash' || invoice.status === 'paid') ? 'Send Receipt' : 'Send Invoice'}</h3>
+              <button className="dash-modal-close" onClick={() => setShowEmailModal(false)}>
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <form onSubmit={handleSendInvoice}>
+              <div className="dash-form-group">
+                <label>To</label>
+                <input
+                  type="email"
+                  value={emailForm.to}
+                  onChange={e => setEmailForm({ ...emailForm, to: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="dash-form-group">
+                <label>Subject</label>
+                <input
+                  type="text"
+                  value={emailForm.subject}
+                  onChange={e => setEmailForm({ ...emailForm, subject: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="dash-form-group">
+                <label>Message</label>
+                <textarea
+                  value={emailForm.body}
+                  onChange={e => setEmailForm({ ...emailForm, body: e.target.value })}
+                  rows={10}
+                  required
+                />
+              </div>
+              <p style={{ fontSize: '0.8rem', color: '#999', margin: '0 0 12px' }}>
+                The invoice table, payment details, and PDF attachment will be added automatically.
+              </p>
+              <div className="dash-modal-actions">
+                <button type="button" className="dash-btn-secondary" onClick={() => setShowEmailModal(false)}>Cancel</button>
+                <button type="submit" className="dash-action-btn" disabled={sending}>
+                  <i className="fa-solid fa-paper-plane"></i> {sending ? 'Sending...' : 'Send'}
                 </button>
               </div>
             </form>

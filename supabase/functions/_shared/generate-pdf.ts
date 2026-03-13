@@ -1,5 +1,20 @@
 import { PDFDocument, rgb, StandardFonts } from 'https://esm.sh/pdf-lib@1.17.1'
 
+function shortAddress(addr: string | null | undefined): string {
+  if (!addr) return ''
+  const parts = addr
+    .replace(/,?\s*(Australia|New Zealand)\s*$/i, '')
+    .replace(/,?\s*\d{4,5}\s*$/, '')
+    .replace(/,?\s*(Bay of Plenty|Waikato|Canterbury|Otago|Hawke's Bay|Manawat[uū\u016b][-–]Whanganui|Taranaki|Southland|Northland|Gisborne|Marlborough|Nelson|West Coast|Tasman)\s*/gi, '')
+    .replace(/\s+Lakes?\s+District/gi, '')
+    .replace(/\s+District/gi, '')
+    .split(',')
+    .map((s: string) => s.trim())
+    .filter(Boolean)
+  if (parts.length <= 2) return parts.join(', ')
+  return `${parts[0]}, ${parts[1]} ${parts[parts.length - 1]}`
+}
+
 export async function generateInvoicePdf(invoice: any, customer: any): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create()
   const page = pdfDoc.addPage([595.28, 841.89]) // A4
@@ -100,7 +115,7 @@ export async function generateInvoicePdf(invoice: any, customer: any): Promise<U
   })
   y -= 15
   if (customer?.address) {
-    page.drawText(customer.address, {
+    page.drawText(shortAddress(customer.address), {
       x: margin, y,
       size: 10,
       font: helvetica,

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import AddressAutocomplete from '../../components/AddressAutocomplete'
+import useSort from '../../hooks/useSort'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function formatCurrency(amount) {
@@ -25,14 +26,17 @@ function badgeClass(status) {
 const emptyForm = { contact_name: '', contact_email: '', contact_phone: '', contact_address: '', service_id: '', status: 'pending', description: '', amount: '' }
 
 export default function Quotes() {
+  const navigate = useNavigate()
   const [quotes, setQuotes] = useState([])
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('all')
+  const filteredQuotes = statusFilter === 'all' ? quotes : quotes.filter(q => q.status === statusFilter)
+  const { sorted: sortedQuotes, SortHeader } = useSort(filteredQuotes, 'created_at', false)
 
   async function fetchQuotes() {
     const { data } = await supabase
@@ -64,63 +68,19 @@ export default function Quotes() {
   }
 
   function openCreate() {
-    setEditing(null)
     setForm(emptyForm)
-    setShowModal(true)
-  }
-
-  function openEdit(quote) {
-    setEditing(quote)
-    setForm({
-      contact_name: quote.contact_name || '',
-      contact_email: quote.contact_email || '',
-      contact_phone: quote.contact_phone || '',
-      contact_address: quote.contact_address || '',
-      service_id: quote.service_id || '',
-      status: quote.status || 'pending',
-      description: quote.description || '',
-      amount: quote.amount || '',
-    })
     setShowModal(true)
   }
 
   function closeModal() {
     setShowModal(false)
-    setEditing(null)
     setForm(emptyForm)
-  }
-
-  async function findOrCreateCustomer(name, email, phone, address) {
-    // Look up by name first
-    if (name) {
-      const { data } = await supabase.from('customers').select('id').eq('name', name).limit(1)
-      if (data && data.length > 0) return data[0].id
-    }
-    // Then by email
-    if (email) {
-      const { data } = await supabase.from('customers').select('id').eq('email', email).limit(1)
-      if (data && data.length > 0) return data[0].id
-    }
-    // Then by phone
-    if (phone) {
-      const { data } = await supabase.from('customers').select('id').eq('phone', phone).limit(1)
-      if (data && data.length > 0) return data[0].id
-    }
-    // No match — create new customer
-    const { data: newCustomer } = await supabase.from('customers').insert({
-      name,
-      email: email || null,
-      phone: phone || null,
-      address: address || null,
-    }).select('id').single()
-    return newCustomer?.id
   }
 
   async function handleSave(e) {
     e.preventDefault()
     setSaving(true)
 
-    const selectedService = services.find(s => s.id === form.service_id)
     const payload = {
       contact_name: form.contact_name,
       contact_email: form.contact_email || null,
@@ -132,38 +92,8 @@ export default function Quotes() {
       amount: form.amount ? Number(form.amount) : null,
     }
 
-    if (editing) {
-      // Check if transitioning TO approved
-      const isNewApproval = form.status === 'approved' && editing.status !== 'approved'
-
-      if (isNewApproval) {
-        const customerId = await findOrCreateCustomer(
-          form.contact_name,
-          form.contact_email,
-          form.contact_phone,
-          form.contact_address,
-        )
-        if (customerId) {
-          const { data: newJob } = await supabase.from('jobs').insert({
-            customer_id: customerId,
-            service_id: form.service_id || null,
-            type: selectedService?.name || '',
-            description: form.description || '',
-            status: 'scheduled',
-            frequency: 'one_off',
-            amount: form.amount ? Number(form.amount) : null,
-          }).select('id').single()
-
-          payload.customer_id = customerId
-          payload.job_id = newJob?.id || null
-        }
-      }
-
-      await supabase.from('quotes').update(payload).eq('id', editing.id)
-    } else {
-      const quoteNumber = await generateQuoteNumber()
-      await supabase.from('quotes').insert({ ...payload, quote_number: quoteNumber })
-    }
+    const quoteNumber = await generateQuoteNumber()
+    await supabase.from('quotes').insert({ ...payload, quote_number: quoteNumber })
 
     setSaving(false)
     closeModal()
@@ -192,8 +122,13 @@ export default function Quotes() {
 
       <div className="dash-section">
         <div className="dash-section-header">
-          <h2 className="dash-section-title">All Quotes</h2>
+          <h2 className="dash-section-title">Quotes</h2>
           <button className="dash-action-btn" onClick={openCreate}>+ Quote</button>
+        </div>
+        <div className="dash-filter-tabs">
+          {[['all', 'All'], ['pending', 'Pending'], ['sent', 'Sent'], ['approved', 'Approved'], ['declined', 'Declined']].map(([val, label]) => (
+            <button key={val} className={`dash-filter-tab${statusFilter === val ? ' active' : ''}`} onClick={() => setStatusFilter(val)}>{label}</button>
+          ))}
         </div>
         {loading ? (
           <p style={{ color: '#888', fontSize: '0.9rem' }}>Loading...</p>
@@ -201,28 +136,25 @@ export default function Quotes() {
           <table className="dash-table">
             <thead>
               <tr>
-                <th>Quote #</th>
-                <th>Contact</th>
-                <th>Service</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Status</th>
+                <SortHeader label="Quote #" field="quote_number" />
+                <SortHeader label="Contact" field="contact_name" />
+                <SortHeader label="Service" field="services.name" />
+                <SortHeader label="Amount" field="amount" />
+                <SortHeader label="Date" field="created_at" />
+                <SortHeader label="Status" field="status" />
                 <th style={{ width: 100 }}></th>
               </tr>
             </thead>
             <tbody>
-              {quotes.map(q => (
+              {sortedQuotes.map(q => (
                 <tr key={q.id}>
-                  <td className="dash-client-name">{q.quote_number}</td>
+                  <td className="dash-client-name" onClick={() => navigate(`/dashboard/quotes/${q.id}`)}>{q.quote_number}</td>
                   <td>{q.contact_name}</td>
                   <td style={{ fontWeight: 500 }}>{q.services?.name || '—'}</td>
                   <td className="dash-amount">{q.amount ? formatCurrency(q.amount) : '—'}</td>
                   <td>{formatDate(q.created_at)}</td>
                   <td><span className={badgeClass(q.status)}>{q.status}</span></td>
                   <td className="dash-row-actions">
-                    <button className="dash-btn-icon" onClick={() => openEdit(q)} title="Edit">
-                      <i className="fa-solid fa-pen-to-square"></i>
-                    </button>
                     <button
                       className={`dash-btn-icon dash-btn-icon--danger ${deleting === q.id ? 'confirm' : ''}`}
                       onClick={() => handleDelete(q)}
@@ -243,7 +175,7 @@ export default function Quotes() {
         <div className="dash-modal-overlay" onClick={closeModal}>
           <div className="dash-modal" onClick={e => e.stopPropagation()}>
             <div className="dash-modal-header">
-              <h3>{editing ? 'Edit Quote' : 'New Quote'}</h3>
+              <h3>New Quote</h3>
               <button className="dash-modal-close" onClick={closeModal}>
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -331,7 +263,7 @@ export default function Quotes() {
               <div className="dash-modal-actions">
                 <button type="button" className="dash-btn-secondary" onClick={closeModal}>Cancel</button>
                 <button type="submit" className="dash-action-btn" disabled={saving}>
-                  {saving ? 'Saving...' : editing ? 'Update' : 'Create'}
+                  {saving ? 'Saving...' : 'Create'}
                 </button>
               </div>
             </form>

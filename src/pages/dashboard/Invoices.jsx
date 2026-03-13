@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import useSort from '../../hooks/useSort'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function formatCurrency(amount) {
@@ -14,7 +15,7 @@ function formatCurrency(amount) {
 function badgeClass(status) {
   const map = {
     draft: 'dash-badge--new',
-    sent: 'dash-badge--scheduled',
+    sent: 'dash-badge--quoted',
     paid: 'dash-badge--completed',
     overdue: 'dash-badge--cancelled',
   }
@@ -38,7 +39,10 @@ export default function Invoices() {
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('all')
   const navigate = useNavigate()
+  const filteredInvoices = statusFilter === 'all' ? invoices : invoices.filter(inv => inv.status === statusFilter)
+  const { sorted: sortedInvoices, SortHeader } = useSort(filteredInvoices, 'created_at', false)
 
   async function fetchInvoices() {
     const { data } = await supabase
@@ -151,8 +155,13 @@ export default function Invoices() {
 
       <div className="dash-section">
         <div className="dash-section-header">
-          <h2 className="dash-section-title">All Invoices</h2>
+          <h2 className="dash-section-title">Invoices</h2>
           <button className="dash-action-btn" onClick={openCreate}>+ Invoice</button>
+        </div>
+        <div className="dash-filter-tabs">
+          {[['all', 'All'], ['draft', 'Draft'], ['sent', 'Sent'], ['paid', 'Paid'], ['overdue', 'Overdue']].map(([val, label]) => (
+            <button key={val} className={`dash-filter-tab${statusFilter === val ? ' active' : ''}`} onClick={() => setStatusFilter(val)}>{label}</button>
+          ))}
         </div>
         {loading ? (
           <p style={{ color: '#888', fontSize: '0.9rem' }}>Loading...</p>
@@ -160,18 +169,18 @@ export default function Invoices() {
           <table className="dash-table">
             <thead>
               <tr>
-                <th>Invoice #</th>
-                <th>Customer</th>
+                <SortHeader label="Invoice #" field="invoice_number" />
+                <SortHeader label="Customer" field="customers.name" />
                 <th>Description</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Due</th>
-                <th>Status</th>
+                <SortHeader label="Amount" field="amount" />
+                <SortHeader label="Date" field="created_at" />
+                <SortHeader label="Due" field="due_date" />
+                <SortHeader label="Status" field="status" />
                 <th style={{ width: 100 }}></th>
               </tr>
             </thead>
             <tbody>
-              {invoices.map(inv => (
+              {sortedInvoices.map(inv => (
                 <tr key={inv.id}>
                   <td className="dash-client-name" onClick={() => navigate(`/dashboard/invoices/${inv.id}`)}>{inv.invoice_number}</td>
                   <td

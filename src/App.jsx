@@ -9,10 +9,11 @@ import CustomerDetail from './pages/dashboard/CustomerDetail'
 import Jobs from './pages/dashboard/Jobs'
 import JobDetail from './pages/dashboard/JobDetail'
 import Services from './pages/dashboard/Services'
-import Quotes from './pages/dashboard/Estimates'
+import Quotes from './pages/dashboard/Quotes'
 import Calendar from './pages/dashboard/Calendar'
 import Invoices from './pages/dashboard/Invoices'
 import InvoiceDetail from './pages/dashboard/InvoiceDetail'
+import QuoteDetail from './pages/dashboard/QuoteDetail'
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="calendar" element={<Calendar />} />
           <Route path="services" element={<Services />} />
           <Route path="quotes" element={<Quotes />} />
+          <Route path="quotes/:id" element={<QuoteDetail />} />
           <Route path="invoices" element={<Invoices />} />
           <Route path="invoices/:id" element={<InvoiceDetail />} />
         </Route>

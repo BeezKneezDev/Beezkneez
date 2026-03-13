@@ -4,14 +4,14 @@ import { supabase } from '../../lib/supabase'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function formatTimestamp(dateStr) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) +
-    ' at ' + d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }) +
+    ' at ' + d.toLocaleTimeString('en-NZ', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 function formatCurrency(amount) {
@@ -117,6 +117,13 @@ export default function JobDetail() {
     fetchAll()
   }, [id])
 
+  const isRecurring = job && job.frequency && job.frequency !== 'one_off'
+  const canCompleteAndInvoice = job && job.status !== 'cancelled' && (
+    isRecurring ||
+    (job.status !== 'completed' && !alreadyInvoiced)
+  )
+  const serviceName = job?.services?.name || job?.type || 'Job'
+
   async function addNote() {
     if (!newNote.trim()) return
     setAddingNote(true)
@@ -181,7 +188,7 @@ export default function JobDetail() {
     return 'INV-001'
   }
 
-  function handleCompleteAndInvoice() {
+  function handleCompleteAndInvoice(paymentMethod) {
     // Warn if invoicing well before scheduled date
     if (isRecurring && job.scheduled_date) {
       const today = new Date()
@@ -190,16 +197,18 @@ export default function JobDetail() {
       scheduled.setHours(0, 0, 0, 0)
       const daysEarly = Math.round((scheduled - today) / (1000 * 60 * 60 * 24))
       if (daysEarly > 1) {
-        setEarlyWarning({ date: job.scheduled_date, days: daysEarly })
+        setEarlyWarning({ date: job.scheduled_date, days: daysEarly, paymentMethod })
         return
       }
     }
-    proceedWithInvoice()
+    proceedWithInvoice(paymentMethod)
   }
 
-  async function proceedWithInvoice() {
+  async function proceedWithInvoice(paymentMethod) {
     setEarlyWarning(null)
     setCompleting(true)
+
+    const isCash = paymentMethod === 'cash'
 
     const newLineItems = [
       { description: job.description || serviceName, amount: job.amount || 0, job_id: id },
@@ -220,7 +229,6 @@ export default function JobDetail() {
         description,
       }).eq('id', draftInvoice.id).select().single()
       if (error) {
-        console.error('Invoice update error:', error)
         alert('Failed to update invoice: ' + error.message)
         setCompleting(false)
         return
@@ -232,7 +240,7 @@ export default function JobDetail() {
       const dueDate = new Date()
       dueDate.setDate(dueDate.getDate() + 7)
       const totalAmount = newLineItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
-      const { data: newInvoice, error } = await supabase.from('invoices').insert({
+      const invoiceData = {
         invoice_number: invoiceNumber,
         customer_id: job.customer_id,
         amount: totalAmount,
@@ -240,14 +248,18 @@ export default function JobDetail() {
         description: job.description || serviceName,
         status: 'draft',
         due_date: dueDate.toISOString().split('T')[0],
-      }).select().single()
+      }
+      if (isCash) {
+        invoiceData.payment_method = 'cash'
+      }
+      const { data: newInvoice, error } = await supabase.from('invoices').insert(invoiceData).select().single()
       if (error) {
-        console.error('Invoice insert error:', error)
         alert('Failed to create invoice: ' + error.message)
         setCompleting(false)
         return
       }
       invoiceId = newInvoice?.id
+
     }
 
     if (isRecurring) {
@@ -259,9 +271,9 @@ export default function JobDetail() {
         scheduled_date: nextDate,
       }).eq('id', id)
       if (jobError) {
-        console.error('Job update error:', jobError)
         alert('Invoice created but failed to advance schedule: ' + jobError.message)
       }
+
       // Refresh job and invoices
       const [jobRes, invoicesRes] = await Promise.all([
         supabase.from('jobs').select('*, customers(id, name), services(id, name)').eq('id', id).single(),
@@ -282,14 +294,6 @@ export default function JobDetail() {
       if (invoiceId) navigate(`/dashboard/invoices/${invoiceId}`)
     }
   }
-
-  const isRecurring = job && job.frequency && job.frequency !== 'one_off'
-  const canCompleteAndInvoice = job && job.status !== 'cancelled' && (
-    isRecurring ||
-    (job.status !== 'completed' && !alreadyInvoiced)
-  )
-
-  const serviceName = job?.services?.name || job?.type || 'Job'
 
   if (loading) {
     return (
@@ -332,9 +336,14 @@ export default function JobDetail() {
           <i className="fa-solid fa-pen-to-square"></i>
         </button>
         {canCompleteAndInvoice && (
-          <button className="dash-action-btn" style={{ marginLeft: 'auto' }} onClick={handleCompleteAndInvoice} disabled={completing}>
-            <i className="fa-solid fa-file-invoice-dollar"></i> {completing ? 'Adding...' : isRecurring ? 'Invoice & Schedule Next' : draftInvoice ? 'Complete & Add to Invoice' : 'Complete & Create Invoice'}
-          </button>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+            <button className="dash-action-btn" onClick={() => handleCompleteAndInvoice()} disabled={completing}>
+              <i className="fa-solid fa-file-invoice-dollar"></i> {completing ? 'Adding...' : isRecurring ? 'Invoice & Schedule Next' : draftInvoice ? 'Complete & Add to Invoice' : 'Complete & Create Invoice'}
+            </button>
+            <button className="dash-action-btn" style={{ background: '#2d8a4e' }} onClick={() => handleCompleteAndInvoice('cash')} disabled={completing}>
+              <i className="fa-solid fa-circle-check"></i> {completing ? 'Adding...' : isRecurring ? 'Paid & Schedule Next' : draftInvoice ? 'Paid & Add to Invoice' : 'Paid & Create Invoice'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -478,6 +487,21 @@ export default function JobDetail() {
           <div className="dash-modal" onClick={e => e.stopPropagation()}>
             <div className="dash-modal-header">
               <h3>Edit Job</h3>
+              {job.status !== 'cancelled' && (
+                <button
+                  type="button"
+                  className="dash-action-btn"
+                  style={{ background: '#dc3545', marginLeft: 'auto', marginRight: 8 }}
+                  onClick={async () => {
+                    await supabase.from('jobs').update({ status: 'cancelled' }).eq('id', id)
+                    const { data: refreshed } = await supabase.from('jobs').select('*, customers(id, name), services(id, name)').eq('id', id).single()
+                    if (refreshed) setJob(refreshed)
+                    setShowEdit(false)
+                  }}
+                >
+                  <i className="fa-solid fa-ban"></i> Cancel Job
+                </button>
+              )}
               <button className="dash-modal-close" onClick={() => setShowEdit(false)}>
                 <i className="fa-solid fa-xmark"></i>
               </button>
@@ -496,41 +520,28 @@ export default function JobDetail() {
                   ))}
                 </select>
               </div>
-              <div className="dash-form-row">
-                <div className="dash-form-group">
-                  <label>Service *</label>
-                  <select
-                    value={editForm.service_id}
-                    onChange={e => {
-                      const newServiceId = e.target.value
-                      const newService = services.find(s => s.id === newServiceId)
-                      const oldService = services.find(s => s.id === editForm.service_id)
-                      const shouldAutoFill = !editForm.description || editForm.description === (oldService?.description || '')
-                      setEditForm({
-                        ...editForm,
-                        service_id: newServiceId,
-                        ...(shouldAutoFill && newService?.description ? { description: newService.description } : {}),
-                      })
-                    }}
-                    required
-                  >
-                    <option value="">Select service...</option>
-                    {services.map(s => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="dash-form-group">
-                  <label>Status</label>
-                  <select
-                    value={editForm.status}
-                    onChange={e => setEditForm({ ...editForm, status: e.target.value })}
-                  >
-                    <option value="scheduled">Scheduled</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
+              <div className="dash-form-group">
+                <label>Service *</label>
+                <select
+                  value={editForm.service_id}
+                  onChange={e => {
+                    const newServiceId = e.target.value
+                    const newService = services.find(s => s.id === newServiceId)
+                    const oldService = services.find(s => s.id === editForm.service_id)
+                    const shouldAutoFill = !editForm.description || editForm.description === (oldService?.description || '')
+                    setEditForm({
+                      ...editForm,
+                      service_id: newServiceId,
+                      ...(shouldAutoFill && newService?.description ? { description: newService.description } : {}),
+                    })
+                  }}
+                  required
+                >
+                  <option value="">Select service...</option>
+                  {services.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
               </div>
               <div className="dash-form-group">
                 <label>Frequency</label>
@@ -604,7 +615,7 @@ export default function JobDetail() {
             </div>
             <div className="dash-modal-actions" style={{ margin: '8px 24px 20px' }}>
               <button className="dash-btn-secondary" onClick={() => setEarlyWarning(null)}>Cancel</button>
-              <button className="dash-action-btn" onClick={proceedWithInvoice}>Invoice Anyway</button>
+              <button className="dash-action-btn" onClick={() => proceedWithInvoice(earlyWarning.paymentMethod)}>Invoice Anyway</button>
             </div>
           </div>
         </div>

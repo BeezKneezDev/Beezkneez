@@ -14,7 +14,6 @@ export default function Services() {
 
   async function fetchServices() {
     const { data, error } = await supabase.from('services').select('*').order('name')
-    console.log('services:', data, 'error:', error)
     if (data) setServices(data)
     setLoading(false)
   }

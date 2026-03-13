@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import useSort from '../../hooks/useSort'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(dateStr).toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function formatCurrency(amount) {
@@ -14,8 +15,8 @@ function formatCurrency(amount) {
 function formatTimestamp(dateStr) {
   if (!dateStr) return ''
   const d = new Date(dateStr)
-  return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) +
-    ' at ' + d.toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit', hour12: true })
+  return d.toLocaleDateString('en-NZ', { day: 'numeric', month: 'short', year: 'numeric' }) +
+    ' at ' + d.toLocaleTimeString('en-NZ', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
 const frequencyLabels = {
@@ -51,7 +52,10 @@ export default function Jobs() {
   const [newNote, setNewNote] = useState('')
   const [addingNote, setAddingNote] = useState(false)
   const [confirmDeleteNote, setConfirmDeleteNote] = useState(null)
+  const [statusFilter, setStatusFilter] = useState('all')
   const navigate = useNavigate()
+  const filteredJobs = statusFilter === 'all' ? jobs : jobs.filter(j => j.status === statusFilter)
+  const { sorted: sortedJobs, SortHeader } = useSort(filteredJobs, 'scheduled_date', false)
 
   async function fetchJobs() {
     const { data } = await supabase
@@ -138,17 +142,12 @@ export default function Jobs() {
       type: selectedService?.name || '',
     }
 
-    console.log('Saving job, editing:', !!editing, 'payload:', payload)
     if (editing) {
       const { data, error } = await supabase.from('jobs').update(payload).eq('id', editing.id).select()
-      console.log('Update data:', JSON.stringify(data))
-      console.log('Update error:', JSON.stringify(error))
       if (error) alert('Update failed: ' + error.message)
-      if (!data || data.length === 0) console.warn('Update returned no rows — RLS may be blocking')
     } else {
       const { data: newJob, error } = await supabase.from('jobs').insert(payload).select().single()
-      console.log('Insert result:', { data: newJob, error })
-      if (error) { console.error('Job insert error:', error); alert('Create failed: ' + error.message) }
+      if (error) alert('Create failed: ' + error.message)
     }
 
     setSaving(false)
@@ -178,8 +177,13 @@ export default function Jobs() {
 
       <div className="dash-section">
         <div className="dash-section-header">
-          <h2 className="dash-section-title">All Jobs</h2>
+          <h2 className="dash-section-title">Jobs</h2>
           <button className="dash-action-btn" onClick={openCreate}>+ Job</button>
+        </div>
+        <div className="dash-filter-tabs">
+          {[['all', 'All'], ['scheduled', 'Scheduled'], ['completed', 'Completed'], ['cancelled', 'Cancelled']].map(([val, label]) => (
+            <button key={val} className={`dash-filter-tab${statusFilter === val ? ' active' : ''}`} onClick={() => setStatusFilter(val)}>{label}</button>
+          ))}
         </div>
         {loading ? (
           <p style={{ color: '#888', fontSize: '0.9rem' }}>Loading...</p>
@@ -187,18 +191,18 @@ export default function Jobs() {
           <table className="dash-table">
             <thead>
               <tr>
-                <th>Customer</th>
-                <th>Service</th>
+                <SortHeader label="Customer" field="customers.name" />
+                <SortHeader label="Service" field="services.name" />
                 <th>Description</th>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Frequency</th>
-                <th>Status</th>
+                <SortHeader label="Date" field="scheduled_date" />
+                <SortHeader label="Amount" field="amount" />
+                <SortHeader label="Frequency" field="frequency" />
+                <SortHeader label="Status" field="status" />
                 <th style={{ width: 100 }}></th>
               </tr>
             </thead>
             <tbody>
-              {jobs.map(job => (
+              {sortedJobs.map(job => (
                 <tr key={job.id}>
                   <td
                     className="dash-client-name"

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import AddressAutocomplete from '../../components/AddressAutocomplete'
+import useSort from '../../hooks/useSort'
 
 const emptyForm = { name: '', address: '', email: '', phone: '' }
 
@@ -26,6 +27,7 @@ export default function Customers() {
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
   const navigate = useNavigate()
+  const { sorted: sortedCustomers, SortHeader } = useSort(customers, 'name')
 
   async function fetchCustomers() {
     const { data } = await supabase.from('customers').select('*').order('name')
@@ -104,15 +106,15 @@ export default function Customers() {
           <table className="dash-table">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Address</th>
-                <th>Email</th>
-                <th>Phone</th>
+                <SortHeader label="Name" field="name" />
+                <SortHeader label="Address" field="address" />
+                <SortHeader label="Email" field="email" />
+                <SortHeader label="Phone" field="phone" />
                 <th style={{ width: 100 }}></th>
               </tr>
             </thead>
             <tbody>
-              {customers.map(c => (
+              {sortedCustomers.map(c => (
                 <tr key={c.id}>
                   <td className="dash-client-name" onClick={() => navigate(`/dashboard/customers/${c.id}`)}>{c.name}</td>
                   <td>{shortAddress(c.address)}</td>

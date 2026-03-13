@@ -16,7 +16,12 @@ serve(async (req) => {
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
     if (!RESEND_API_KEY) throw new Error('Missing RESEND_API_KEY')
 
+    const EMAIL_OVERRIDE = Deno.env.get('EMAIL_OVERRIDE')
+
     const { invoice, customer } = await req.json()
+
+    const recipientEmail = EMAIL_OVERRIDE || customer?.email
+    if (!recipientEmail) throw new Error('No recipient email — customer has no email address')
 
     const dueDate = invoice.due_date
       ? new Date(invoice.due_date).toLocaleDateString('en-NZ', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -154,7 +159,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: 'Beezkneez Lawns & Property Care <invoices@beezkneez.nz>',
-        to: 'byron@beezkneez.nz',
+        to: recipientEmail,
         subject: `Payment Reminder — ${invoice.invoice_number} — Beezkneez Lawns & Property Care`,
         html,
         attachments: [{

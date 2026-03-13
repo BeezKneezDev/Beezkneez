@@ -359,6 +359,32 @@
   margin-bottom: 0;
 }
 
+/* Filter tabs */
+.dash-filter-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.dash-filter-tab {
+  padding: 6px 14px;
+  border: 1px solid #333;
+  border-radius: 20px;
+  background: transparent;
+  color: #aaa;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.dash-filter-tab:hover {
+  border-color: var(--green-mid);
+  color: var(--green-mid);
+}
+.dash-filter-tab.active {
+  background: var(--green-mid);
+  border-color: var(--green-mid);
+  color: #fff;
+}
+
 /* Green action button */
 .dash-action-btn {
   background: var(--green-mid);

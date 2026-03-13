@@ -79,6 +79,7 @@ export default function Calendar() {
         .from('jobs')
         .select('*, customers(id, name), services(id, name)')
         .neq('status', 'cancelled')
+        .neq('status', 'completed')
         .order('scheduled_date', { ascending: true })
       if (data) setJobs(data)
       setLoading(false)
