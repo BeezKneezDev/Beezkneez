@@ -59,8 +59,8 @@ function Slider({ beforeSrc, afterSrc, beforeAlt, afterAlt, caption, beforeOffse
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <img className="ba-after" src={afterSrc} alt={afterAlt} loading="lazy" style={afterOffset ? { objectPosition: `center calc(50% + ${afterOffset})` } : undefined} />
-        <img className="ba-before" src={beforeSrc} alt={beforeAlt} loading="lazy" ref={beforeRef} style={beforeOffset ? { objectPosition: `center calc(50% + ${beforeOffset})` } : undefined} />
+        <img className="ba-after" src={afterSrc} alt={afterAlt} loading="lazy" style={afterOffset ? { objectPosition: `calc(50% + ${afterOffset.x || '0px'}) calc(50% + ${afterOffset.y || '0px'})` } : undefined} />
+        <img className="ba-before" src={beforeSrc} alt={beforeAlt} loading="lazy" ref={beforeRef} style={beforeOffset ? { objectPosition: `calc(50% + ${beforeOffset.x || '0px'}) calc(50% + ${beforeOffset.y || '0px'})` } : undefined} />
         <span className="ba-label ba-label-before">Before</span>
         <span className="ba-label ba-label-after">After</span>
         <div className="ba-handle" ref={handleRef}>
@@ -88,8 +88,8 @@ export default function BeforeAfter() {
       afterSrc: '/photos/before-after/after-lawn-mow-hillcrest-rotorua.jpg',
       beforeAlt: 'Backyard lawn before mowing in Hillcrest, Rotorua',
       afterAlt: 'Backyard lawn after mowing in Hillcrest, Rotorua',
-      beforeOffset: '20px',
-      afterOffset: '-10px',
+      beforeOffset: { y: '20px' },
+      afterOffset: { y: '-10px' },
       caption: 'Backyard mow — gave this lawn a good tidy up, cleared the debris and got the edges looking sharp.',
     },
     {
@@ -105,6 +105,13 @@ export default function BeforeAfter() {
       beforeAlt: 'Overgrown hedge before trimming in Lynmore, Rotorua',
       afterAlt: 'Neatly trimmed hedge after shaping in Lynmore, Rotorua',
       caption: 'Hedge trim — overgrown front hedge shaped and tidied, clippings cleared.',
+    },
+    {
+      beforeSrc: '/photos/before-after/before-backyard-mow-rotorua.jpg',
+      afterSrc: '/photos/before-after/after-backyard-mow-rotorua.jpg',
+      beforeAlt: 'Backyard lawn before mowing in Rotorua',
+      afterAlt: 'Freshly mowed backyard lawn with stripes in Rotorua',
+      caption: 'Backyard mow — long grass cut back with clean mow lines throughout.',
     },
   ]
 

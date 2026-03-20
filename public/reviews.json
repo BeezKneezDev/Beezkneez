@@ -1,7 +1,14 @@
 {
   "rating": 5,
-  "totalRatings": 1,
+  "totalRatings": 2,
   "reviews": [
+    {
+      "author": "Christine Forrest",
+      "avatar": "",
+      "rating": 5,
+      "date": "a day ago",
+      "text": "Super happy with the professional job done on my lawn. Friendly service. Great price. I would definitely highly recommend Bryon."
+    },
     {
       "author": "Shirley Turnbull",
       "avatar": "",

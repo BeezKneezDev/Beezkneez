@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 function renderStars(rating) {
   let stars = ''
@@ -12,8 +12,10 @@ export default function Reviews() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [current, setCurrent] = useState(0)
   const sectionRef = useRef(null)
   const fetched = useRef(false)
+  const autoplayRef = useRef(null)
 
   useEffect(() => {
     const section = sectionRef.current
@@ -33,6 +35,32 @@ export default function Reviews() {
     observer.observe(section)
     return () => observer.disconnect()
   }, [])
+
+  const totalReviews = data?.reviews?.length || 0
+
+  const goTo = useCallback((index) => {
+    setCurrent((index + totalReviews) % totalReviews)
+  }, [totalReviews])
+
+  // Autoplay
+  useEffect(() => {
+    if (totalReviews <= 1) return
+    autoplayRef.current = setInterval(() => {
+      setCurrent(prev => (prev + 1) % totalReviews)
+    }, 6000)
+    return () => clearInterval(autoplayRef.current)
+  }, [totalReviews])
+
+  const resetAutoplay = useCallback(() => {
+    if (autoplayRef.current) clearInterval(autoplayRef.current)
+    if (totalReviews <= 1) return
+    autoplayRef.current = setInterval(() => {
+      setCurrent(prev => (prev + 1) % totalReviews)
+    }, 6000)
+  }, [totalReviews])
+
+  const prev = () => { goTo(current - 1); resetAutoplay() }
+  const next = () => { goTo(current + 1); resetAutoplay() }
 
   async function fetchReviews() {
     try {
@@ -78,24 +106,52 @@ export default function Reviews() {
         )}
 
         {data?.reviews && data.reviews.length > 0 && (
-          <div className="reviews-container">
-            {data.reviews.map((review, i) => (
-              <div className="review-card animate-in visible" key={i}>
-                <div className="review-stars">{renderStars(review.rating)}</div>
-                {review.text && <p className="review-text">{review.text}</p>}
-                <div className="review-header">
-                  {review.avatar ? (
-                    <img className="review-avatar" src={review.avatar} alt={review.author} referrerPolicy="no-referrer" />
-                  ) : (
-                    <div className="review-avatar-placeholder">{review.author.charAt(0).toUpperCase()}</div>
-                  )}
-                  <div className="review-meta">
-                    <span className="review-author">{review.author}</span>
-                    <span className="review-date">{review.date}</span>
+          <div className="reviews-slider">
+            {totalReviews > 1 && (
+              <button className="reviews-arrow reviews-arrow-left" onClick={prev} aria-label="Previous review">
+                <i className="fas fa-chevron-left"></i>
+              </button>
+            )}
+            <div className="reviews-track">
+              {data.reviews.map((review, i) => (
+                <div
+                  className={`review-card${i === current ? ' review-card-active' : ''}`}
+                  key={i}
+                  style={{ display: i === current ? 'block' : 'none' }}
+                >
+                  <div className="review-stars">{renderStars(review.rating)}</div>
+                  {review.text && <p className="review-text">{review.text}</p>}
+                  <div className="review-header">
+                    {review.avatar ? (
+                      <img className="review-avatar" src={review.avatar} alt={review.author} referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="review-avatar-placeholder">{review.author.charAt(0).toUpperCase()}</div>
+                    )}
+                    <div className="review-meta">
+                      <span className="review-author">{review.author}</span>
+                      <span className="review-date">{review.date}</span>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+            {totalReviews > 1 && (
+              <button className="reviews-arrow reviews-arrow-right" onClick={next} aria-label="Next review">
+                <i className="fas fa-chevron-right"></i>
+              </button>
+            )}
+            {totalReviews > 1 && (
+              <div className="reviews-dots">
+                {data.reviews.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`reviews-dot${i === current ? ' reviews-dot-active' : ''}`}
+                    onClick={() => { goTo(i); resetAutoplay() }}
+                    aria-label={`Go to review ${i + 1}`}
+                  />
+                ))}
               </div>
-            ))}
+            )}
           </div>
         )}
 
