@@ -111,14 +111,14 @@ export default function BeforeAfter() {
       afterSrc: '/photos/before-after/after-backyard-mow-rotorua.jpg',
       beforeAlt: 'Backyard lawn before mowing in Rotorua',
       afterAlt: 'Freshly mowed backyard lawn with stripes in Rotorua',
-      caption: 'Backyard mow — long grass cut back with clean mow lines throughout.',
+      caption: 'Fortnightly mow — regular backyard tidy-up with a full cut, edge trim and clean-up.',
     },
     {
       beforeSrc: '/photos/before-after/before-hedge-trim-glenholme-rotorua.jpg',
       afterSrc: '/photos/before-after/after-hedge-trim-glenholme-rotorua.jpg',
       beforeAlt: 'Overgrown hedge before trimming in Glenholme, Rotorua',
       afterAlt: 'Neatly trimmed hedge along pathway in Glenholme, Rotorua',
-      caption: 'Hedge trim — overgrown hedge cut back off the pathway and shaped up.',
+      caption: 'Hedge trim — very overgrown hedge reduced in height significantly, shaped up and ready for regular maintenance.',
     },
   ]
 
