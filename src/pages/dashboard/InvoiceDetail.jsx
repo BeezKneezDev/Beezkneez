@@ -247,6 +247,13 @@ export default function InvoiceDetail() {
   const draftDiscountNum = Number(draftDiscount) || 0
   const draftTotal = draftSubtotal * (1 - draftDiscountNum / 100)
 
+  // Check if draft has unsaved changes
+  const isDirty = invoice && invoice.status === 'draft' && (
+    JSON.stringify(draftItems.map(li => ({ description: li.description || '', amount: Number(li.amount || 0) }))) !==
+    JSON.stringify((invoice.line_items || []).map(li => ({ description: li.description || '', amount: Number(li.amount || 0) }))) ||
+    Number(draftDiscount || 0) !== Number(invoice.discount_percent || 0)
+  )
+
   if (loading) {
     return (
       <>
@@ -505,12 +512,13 @@ export default function InvoiceDetail() {
         <div className="dash-invoice-actions">
           {invoice.status === 'draft' && (
             <>
-              <button className="dash-action-btn" onClick={() => openEmailModal('invoice')} disabled={updating}>
+              <button className="dash-action-btn" onClick={() => openEmailModal('invoice')} disabled={updating || isDirty} title={isDirty ? 'Save changes before sending' : ''}>
                 <i className="fa-solid fa-paper-plane"></i> Send Invoice
               </button>
               <button className="dash-btn-secondary" onClick={handleMarkPaid} disabled={updating}>
                 <i className="fa-solid fa-money-bill"></i> {updating ? 'Updating...' : 'Paid'}
               </button>
+              {isDirty && <span style={{ fontSize: '0.8rem', color: '#e53e3e' }}>Unsaved changes — save before sending</span>}
             </>
           )}
           {(invoice.status === 'sent' || invoice.status === 'overdue') && (
