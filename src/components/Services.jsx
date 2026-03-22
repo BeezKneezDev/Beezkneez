@@ -1,13 +1,28 @@
-export default function Services() {
-  const services = [
-    { icon: 'fa-leaf', title: 'Lawn Mowing', desc: 'Regular mowing for small to medium residential sections. Consistent, reliable service you can count on.' },
-    { icon: 'fa-seedling', title: 'Garden Tidy-Ups', desc: 'Weed removal, garden bed maintenance, and general clean-ups to keep your property looking fresh.' },
-    { icon: 'fa-cut', title: 'Hedge Trimming', desc: 'Keep your hedges neat and tidy with regular trimming and shaping throughout the year.' },
-    { icon: 'fa-home', title: 'Gutter Cleaning', desc: 'Clear out leaves and debris to keep your gutters flowing properly and protect your home.' },
-    { icon: 'fa-wrench', title: 'General Maintenance', desc: 'Outdoor odd jobs and property maintenance — just ask what you need, happy to help.' },
-    { icon: 'fa-plus', title: 'More Coming Soon', desc: "As the business grows, so will the services. Got something specific you need? Just ask — I might already be able to help." },
-  ]
+import { Link } from 'react-router-dom'
+import '../styles/services.css'
 
+const services = [
+  {
+    title: 'Lawn Mowing',
+    desc: 'Regular mowing for residential sections across Rotorua.',
+    image: '/photos/before-after/after-backyard-mow-rotorua.jpg',
+    link: '/lawn-mowing',
+  },
+  {
+    title: 'Hedge Trimming',
+    desc: 'Hedge shaping, height reduction and regular maintenance.',
+    image: '/photos/before-after/after-hedge-trim-glenholme-rotorua.jpg',
+    link: '/hedge-trimming',
+  },
+  {
+    title: 'Garden Tidy-Ups',
+    desc: 'Weed removal, garden beds and general clean-ups.',
+    image: '/photos/mums_job/69d7f704-a0d4-4ac0-a300-3de48d14d381.jpeg',
+    link: '/garden-tidy-ups',
+  },
+]
+
+export default function Services() {
   return (
     <section className="services" id="services">
       <div className="container">
@@ -15,14 +30,24 @@ export default function Services() {
           <div className="section-tag">Services</div>
           <h2 className="section-title">What I can help with</h2>
         </div>
-        <div className="services-grid">
+        <div className="services-list">
           {services.map((s) => (
-            <div className="service-card animate-in" key={s.title}>
-              <div className="service-icon"><i className={`fas ${s.icon}`}></i></div>
-              <h3>{s.title}</h3>
-              <p>{s.desc}</p>
-            </div>
+            <Link to={s.link} className="services-list-item animate-in" key={s.title}>
+              <div className="services-list-image">
+                <img src={s.image} alt={s.title + ' in Rotorua'} loading="lazy" />
+              </div>
+              <div className="services-list-info">
+                <h3>{s.title}</h3>
+                <p>{s.desc}</p>
+                <span className="services-list-link">
+                  Learn more <i className="fas fa-arrow-right"></i>
+                </span>
+              </div>
+            </Link>
           ))}
+        </div>
+        <div className="services-cta animate-in">
+          <Link to="/services" className="btn btn-primary">View All Services</Link>
         </div>
       </div>
     </section>

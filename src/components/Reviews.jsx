@@ -8,6 +8,20 @@ function renderStars(rating) {
   return stars
 }
 
+function timeAgo(dateStr) {
+  const now = new Date()
+  const date = new Date(dateStr)
+  const days = Math.floor((now - date) / (1000 * 60 * 60 * 24))
+  if (days === 0) return 'today'
+  if (days === 1) return 'yesterday'
+  if (days < 7) return days + ' days ago'
+  if (days < 14) return 'a week ago'
+  if (days < 30) return Math.floor(days / 7) + ' weeks ago'
+  if (days < 60) return 'a month ago'
+  if (days < 365) return Math.floor(days / 30) + ' months ago'
+  return 'over a year ago'
+}
+
 export default function Reviews() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -129,7 +143,7 @@ export default function Reviews() {
                     )}
                     <div className="review-meta">
                       <span className="review-author">{review.author}</span>
-                      <span className="review-date">{review.date}</span>
+                      <span className="review-date">{timeAgo(review.date)}</span>
                     </div>
                   </div>
                 </div>

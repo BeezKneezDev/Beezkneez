@@ -1,5 +1,9 @@
 import { Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
+import LawnMowing from './pages/LawnMowing'
+import HedgeTrimming from './pages/HedgeTrimming'
+import GardenTidyUps from './pages/GardenTidyUps'
+import ServicesPage from './pages/ServicesPage'
 import Login from './pages/Login'
 import ProtectedRoute from './components/ProtectedRoute'
 import DashboardLayout from './components/DashboardLayout'
@@ -14,11 +18,18 @@ import Calendar from './pages/dashboard/Calendar'
 import Invoices from './pages/dashboard/Invoices'
 import InvoiceDetail from './pages/dashboard/InvoiceDetail'
 import QuoteDetail from './pages/dashboard/QuoteDetail'
+import Flyer from './pages/Flyer'
+import NotFound from './pages/NotFound'
 
 export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/lawn-mowing" element={<LawnMowing />} />
+      <Route path="/hedge-trimming" element={<HedgeTrimming />} />
+      <Route path="/garden-tidy-ups" element={<GardenTidyUps />} />
+      <Route path="/services" element={<ServicesPage />} />
+      <Route path="/flyer" element={<Flyer />} />
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
@@ -35,6 +46,7 @@ export default function App() {
           <Route path="invoices/:id" element={<InvoiceDetail />} />
         </Route>
       </Route>
+      <Route path="*" element={<NotFound />} />
     </Routes>
   )
 }

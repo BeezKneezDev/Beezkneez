@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
+  const location = useLocation()
+  const isHome = location.pathname === '/'
 
   useEffect(() => {
     function handleScroll() {
@@ -11,18 +14,27 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  function handleLogoClick(e) {
+    if (isHome) {
+      e.preventDefault()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }
+
+  function handleQuoteClick(e) {
+    e.preventDefault()
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <header className={scrolled ? 'scrolled' : ''}>
       <div className="header-container">
-        <a href="#" className="logo" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+        <Link to="/" className="logo" onClick={handleLogoClick}>
           <img src="/beezkneez-logo.png" alt="Beezkneez Logo" />
-        </a>
+        </Link>
         <div className="header-buttons">
           <a href="tel:+64221924346" className="btn btn-secondary">Call Now</a>
-          <a href="#contact" className="btn btn-primary" onClick={(e) => {
-            e.preventDefault()
-            document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
-          }}>Free Quote</a>
+          <a href="#contact" className="btn btn-primary" onClick={handleQuoteClick}>Free Quote</a>
         </div>
       </div>
     </header>

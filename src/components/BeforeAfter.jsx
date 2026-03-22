@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react'
 
-function Slider({ beforeSrc, afterSrc, beforeAlt, afterAlt, caption, beforeOffset, afterOffset }) {
+export function Slider({ beforeSrc, afterSrc, beforeAlt, afterAlt, caption, beforeOffset, afterOffset }) {
   const sliderRef = useRef(null)
   const beforeRef = useRef(null)
   const handleRef = useRef(null)

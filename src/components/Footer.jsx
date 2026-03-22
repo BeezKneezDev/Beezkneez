@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 export default function Footer() {
   const [fbHover, setFbHover] = useState(false)
@@ -10,6 +11,12 @@ export default function Footer() {
           <img src="/beezkneez-logo.png" alt="Beezkneez" />
           <span>Beezkneez Lawns &amp; Property Care</span>
         </div>
+        <nav className="footer-links">
+          <Link to="/services">Services</Link>
+          <Link to="/lawn-mowing">Lawn Mowing</Link>
+          <Link to="/hedge-trimming">Hedge Trimming</Link>
+          <Link to="/garden-tidy-ups">Garden Tidy-Ups</Link>
+        </nav>
         <a
           href="https://www.facebook.com/profile.php?id=61584978087247"
           target="_blank"

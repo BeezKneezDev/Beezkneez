@@ -359,6 +359,37 @@ header.scrolled .header-buttons {
   font-size: 0.95rem;
 }
 
+a.service-card-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.service-card-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--green-pale);
+  color: var(--green-mid);
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  transition: all 0.3s ease;
+}
+
+.service-card-link:hover .service-card-arrow {
+  background: var(--green-mid);
+  color: white;
+  transform: translateX(4px);
+}
+
+.services-cta {
+  text-align: center;
+  margin-top: 3rem;
+}
+
 
 /* Why Choose */
 .why-choose {
@@ -1206,6 +1237,22 @@ footer {
 
 .footer-brand span {
   font-weight: 600;
+  color: white;
+}
+
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+.footer-links a:hover {
   color: white;
 }
 
