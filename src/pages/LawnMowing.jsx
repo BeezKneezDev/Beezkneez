@@ -5,7 +5,7 @@ export default function LawnMowing() {
     <ServicePage
       title="Lawn Mowing Rotorua"
       metaTitle="Lawn Mowing Rotorua | Beezkneez Lawns & Property Care"
-      metaDescription="Reliable lawn mowing service in Rotorua. Regular fortnightly or weekly mowing, one-off cuts, edge trimming and clippings removal. Free quotes."
+      metaDescription="Reliable lawn mowing service in Rotorua. Regular fortnightly or weekly mowing, one-off cuts, weed eating and clippings removal. Free quotes."
       description="Regular, reliable lawn mowing for residential sections across Rotorua. Whether it's a fortnightly tidy-up or a one-off mow, I'll keep your lawn looking sharp."
       blurb={[
         "I offer regular fortnightly and weekly mowing for small to medium residential sections across Rotorua. Whether you need a consistent schedule to keep things tidy or a one-off mow to get on top of an overgrown lawn, I've got you covered.",
