@@ -1,4 +1,15 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+
+function getUtmParams() {
+  const params = new URLSearchParams(window.location.search)
+  return {
+    utm_source: params.get('utm_source') || '',
+    utm_medium: params.get('utm_medium') || '',
+    utm_campaign: params.get('utm_campaign') || '',
+    utm_term: params.get('utm_term') || '',
+    utm_content: params.get('utm_content') || '',
+  }
+}
 
 export default function Contact() {
   const [selectOpen, setSelectOpen] = useState(false)
@@ -8,6 +19,7 @@ export default function Contact() {
   const [toast, setToast] = useState(null)
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const utmParams = useMemo(getUtmParams, [])
 
   const emailMethodRef = useRef(null)
   const emailLabelRef = useRef(null)
@@ -115,10 +127,17 @@ export default function Contact() {
           address: form.address.value,
           message: form.message.value,
           preferredContact: preferredContact,
+          ...(utmParams.utm_source ? { source: 'google-ads', ...utmParams } : {}),
         }),
       })
       const data = await res.json()
       if (data.success) {
+        if (typeof gtag === 'function') {
+          gtag('event', 'form_submission', {
+            event_category: 'engagement',
+            event_label: utmParams.utm_source ? 'ads_form' : 'organic_form',
+          })
+        }
         setToast("Message sent! I'll get back to you soon.")
         form.reset()
         setSelectedService('')

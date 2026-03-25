@@ -33,7 +33,14 @@ export default function Header() {
           <img src="/beezkneez-logo.png" alt="Beezkneez Logo" />
         </Link>
         <div className="header-buttons">
-          <a href="tel:+64221924346" className="btn btn-secondary">Call Now</a>
+          <a href="tel:+64221924346" className="btn btn-secondary" onClick={() => {
+            if (typeof gtag === 'function') {
+              gtag('event', 'phone_call_click', {
+                event_category: 'engagement',
+                event_label: 'header_call',
+              })
+            }
+          }}>Call Now</a>
           <a href="#contact" className="btn btn-primary" onClick={handleQuoteClick}>Free Quote</a>
         </div>
       </div>
