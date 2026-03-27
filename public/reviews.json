@@ -1,7 +1,21 @@
 {
   "rating": 5,
-  "totalRatings": 2,
+  "totalRatings": 4,
   "reviews": [
+    {
+      "author": "Rachel McRae",
+      "avatar": "",
+      "rating": 5,
+      "date": "2026-03-27",
+      "text": "Byron trimmed a hedge at my property, great job, great communication and cleaned up all the greenwaste nicely too. Thank you!"
+    },
+    {
+      "author": "Grant & Sue Keyworth",
+      "avatar": "",
+      "rating": 5,
+      "date": "2026-03-27",
+      "text": "Very pleased with the work done by Beezkneez on our home. Cleaning hard to reach windows, sprouting & downpipes, scrubbing decks, general tidy up. Good communication & prompt service."
+    },
     {
       "author": "Christine Forrest",
       "avatar": "",
