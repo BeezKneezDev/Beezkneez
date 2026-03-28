@@ -1,0 +1,1 @@
+ALTER TABLE kpi_manual ADD COLUMN IF NOT EXISTS drop_date DATE;

@@ -58,21 +58,24 @@ export default function CustomerDetail() {
   const [addingNote, setAddingNote] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [showEdit, setShowEdit] = useState(false)
-  const [editForm, setEditForm] = useState({ name: '', address: '', email: '', phone: '' })
+  const [editForm, setEditForm] = useState({ name: '', address: '', email: '', phone: '', lead_source: '' })
   const [saving, setSaving] = useState(false)
+  const [leadChannels, setLeadChannels] = useState([])
 
   useEffect(() => {
     async function fetchAll() {
-      const [custRes, jobsRes, invRes, notesRes] = await Promise.all([
+      const [custRes, jobsRes, invRes, notesRes, channelsRes] = await Promise.all([
         supabase.from('customers').select('*').eq('id', id).single(),
         supabase.from('jobs').select('*, services(name)').eq('customer_id', id).order('scheduled_date', { ascending: false }),
         supabase.from('invoices').select('*').eq('customer_id', id).order('created_at', { ascending: false }),
         supabase.from('notes').select('*, jobs(id, type)').eq('customer_id', id).order('created_at', { ascending: false }),
+        supabase.from('lead_channels').select('*').order('title'),
       ])
       if (custRes.data) setCustomer(custRes.data)
       if (jobsRes.data) setJobs(jobsRes.data)
       if (invRes.data) setInvoices(invRes.data)
       if (notesRes.data) setCustomerNotes(notesRes.data)
+      if (channelsRes.data) setLeadChannels(channelsRes.data)
       setLoading(false)
     }
     fetchAll()
@@ -105,6 +108,7 @@ export default function CustomerDetail() {
       address: customer.address || '',
       email: customer.email || '',
       phone: customer.phone || '',
+      lead_source: customer.lead_source || '',
     })
     setShowEdit(true)
   }
@@ -199,6 +203,14 @@ export default function CustomerDetail() {
               <a href={`tel:${customer.phone}`}>{customer.phone}</a>
             ) : (
               <span className="dash-contact-empty">No phone</span>
+            )}
+          </div>
+          <div className="dash-contact-row">
+            <i className="fa-solid fa-bullhorn"></i>
+            {customer.lead_source ? (
+              <span>{customer.lead_source}</span>
+            ) : (
+              <span className="dash-contact-empty">No lead source</span>
             )}
           </div>
         </div>
@@ -403,6 +415,18 @@ export default function CustomerDetail() {
                     onChange={e => setEditForm({ ...editForm, phone: e.target.value })}
                   />
                 </div>
+              </div>
+              <div className="dash-form-group">
+                <label>Lead Source</label>
+                <select
+                  value={editForm.lead_source}
+                  onChange={e => setEditForm({ ...editForm, lead_source: e.target.value })}
+                >
+                  <option value="">— Select —</option>
+                  {leadChannels.map(ch => (
+                    <option key={ch.id} value={ch.title}>{ch.title}</option>
+                  ))}
+                </select>
               </div>
               <div className="dash-modal-actions">
                 <button type="button" className="dash-btn-secondary" onClick={() => setShowEdit(false)}>Cancel</button>

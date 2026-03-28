@@ -18,6 +18,8 @@ import Calendar from './pages/dashboard/Calendar'
 import Invoices from './pages/dashboard/Invoices'
 import InvoiceDetail from './pages/dashboard/InvoiceDetail'
 import QuoteDetail from './pages/dashboard/QuoteDetail'
+import KPI from './pages/dashboard/KPI'
+import Leads from './pages/dashboard/Leads'
 import Flyer from './pages/Flyer'
 import NotFound from './pages/NotFound'
 
@@ -42,6 +44,8 @@ export default function App() {
           <Route path="services" element={<Services />} />
           <Route path="quotes" element={<Quotes />} />
           <Route path="quotes/:id" element={<QuoteDetail />} />
+          <Route path="kpi" element={<KPI />} />
+          <Route path="leads" element={<Leads />} />
           <Route path="invoices" element={<Invoices />} />
           <Route path="invoices/:id" element={<InvoiceDetail />} />
         </Route>

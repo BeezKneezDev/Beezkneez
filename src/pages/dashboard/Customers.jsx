@@ -4,7 +4,8 @@ import { supabase } from '../../lib/supabase'
 import AddressAutocomplete from '../../components/AddressAutocomplete'
 import useSort from '../../hooks/useSort'
 
-const emptyForm = { name: '', address: '', email: '', phone: '' }
+const emptyForm = { name: '', address: '', email: '', phone: '', lead_source: '' }
+
 
 function shortAddress(addr) {
   if (!addr) return ''
@@ -26,6 +27,7 @@ export default function Customers() {
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(null)
+  const [leadChannels, setLeadChannels] = useState([])
   const navigate = useNavigate()
   const { sorted: sortedCustomers, SortHeader } = useSort(customers, 'name')
 
@@ -35,7 +37,12 @@ export default function Customers() {
     setLoading(false)
   }
 
-  useEffect(() => { fetchCustomers() }, [])
+  async function fetchLeadChannels() {
+    const { data } = await supabase.from('lead_channels').select('*').order('title')
+    if (data) setLeadChannels(data)
+  }
+
+  useEffect(() => { fetchCustomers(); fetchLeadChannels() }, [])
 
   function openCreate() {
     setEditing(null)
@@ -50,6 +57,7 @@ export default function Customers() {
       address: customer.address || '',
       email: customer.email || '',
       phone: customer.phone || '',
+      lead_source: customer.lead_source || '',
     })
     setShowModal(true)
   }
@@ -110,6 +118,7 @@ export default function Customers() {
                 <SortHeader label="Address" field="address" />
                 <SortHeader label="Email" field="email" />
                 <SortHeader label="Phone" field="phone" />
+                <SortHeader label="Lead Source" field="lead_source" />
                 <th style={{ width: 100 }}></th>
               </tr>
             </thead>
@@ -120,6 +129,7 @@ export default function Customers() {
                   <td>{shortAddress(c.address)}</td>
                   <td>{c.email}</td>
                   <td>{c.phone}</td>
+                  <td>{c.lead_source || '—'}</td>
                   <td className="dash-row-actions">
                     <button className="dash-btn-icon" onClick={() => openEdit(c)} title="Edit">
                       <i className="fa-solid fa-pen-to-square"></i>
@@ -183,6 +193,18 @@ export default function Customers() {
                     onChange={e => setForm({ ...form, phone: e.target.value })}
                   />
                 </div>
+              </div>
+              <div className="dash-form-group">
+                <label>Lead Source</label>
+                <select
+                  value={form.lead_source}
+                  onChange={e => setForm({ ...form, lead_source: e.target.value })}
+                >
+                  <option value="">— Select —</option>
+                  {leadChannels.map(ch => (
+                    <option key={ch.id} value={ch.title}>{ch.title}</option>
+                  ))}
+                </select>
               </div>
               <div className="dash-modal-actions">
                 <button type="button" className="dash-btn-secondary" onClick={closeModal}>Cancel</button>
