@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import AddressAutocomplete from '../../components/AddressAutocomplete'
 
 function formatDate(dateStr) {
   if (!dateStr) return '—'
@@ -42,6 +43,10 @@ export default function QuoteDetail() {
   const [sending, setSending] = useState(false)
   const [approving, setApproving] = useState(false)
   const [cancelling, setCancelling] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editForm, setEditForm] = useState(null)
+  const [editSaving, setEditSaving] = useState(false)
+  const [services, setServices] = useState([])
 
   async function fetchQuote() {
     const { data } = await supabase.from('quotes').select('*, services(id, name)').eq('id', id).single()
@@ -51,12 +56,14 @@ export default function QuoteDetail() {
 
   useEffect(() => {
     async function fetchAll() {
-      const [quoteRes, notesRes] = await Promise.all([
+      const [quoteRes, notesRes, servicesRes] = await Promise.all([
         supabase.from('quotes').select('*, services(id, name)').eq('id', id).single(),
         supabase.from('notes').select('*').eq('quote_id', id).order('created_at', { ascending: false }),
+        supabase.from('services').select('*').order('name'),
       ])
       if (quoteRes.data) setQuote(quoteRes.data)
       if (notesRes.data) setNotes(notesRes.data)
+      if (servicesRes.data) setServices(servicesRes.data)
       setLoading(false)
     }
     fetchAll()
@@ -86,15 +93,11 @@ export default function QuoteDetail() {
   }
 
   function openEmailModal() {
-    const amount = quote.amount ? formatCurrency(quote.amount) : ''
     const body = `Hi ${quote.contact_name || ''},
 
 Thanks for getting in touch — nice to meet you!
 
 Here is your quote for ${serviceName} at ${quote.contact_address || ''}:
-
-${quote.description || ''}
-Amount: ${amount}
 
 If you're happy to go ahead, just let me know and I'll get it booked in.
 
@@ -115,7 +118,7 @@ Beezkneez Lawns & Property Care`
     setSending(true)
     try {
       const { error: fnError } = await supabase.functions.invoke('send-quote', {
-        body: { to: emailForm.to, subject: emailForm.subject, body: emailForm.body },
+        body: { to: emailForm.to, subject: emailForm.subject, body: emailForm.body, line_items: quote.line_items || [] },
       })
       if (fnError) throw new Error(fnError.message || 'Unknown error')
     } catch (err) {
@@ -218,6 +221,47 @@ Beezkneez Lawns & Property Care`
     setCancelling(false)
   }
 
+  function openEditModal() {
+    const lineItems = (quote.line_items || []).length > 0
+      ? quote.line_items.map(li => ({ description: li.description || '', amount: li.amount ?? '' }))
+      : [{ description: quote.description || '', amount: quote.amount ?? '' }]
+    setEditForm({
+      contact_name: quote.contact_name || '',
+      contact_email: quote.contact_email || '',
+      contact_phone: quote.contact_phone || '',
+      contact_address: quote.contact_address || '',
+      service_id: quote.service_id || '',
+      line_items: lineItems,
+    })
+    setShowEditModal(true)
+  }
+
+  async function handleEditSave(e) {
+    e.preventDefault()
+    setEditSaving(true)
+    const lineItems = editForm.line_items.filter(li => li.description || li.amount)
+    const total = lineItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
+    const combinedDesc = lineItems.map(li => li.description).filter(Boolean).join(', ')
+
+    const { data } = await supabase.from('quotes')
+      .update({
+        contact_name: editForm.contact_name,
+        contact_email: editForm.contact_email || null,
+        contact_phone: editForm.contact_phone || null,
+        contact_address: editForm.contact_address || null,
+        service_id: editForm.service_id || null,
+        line_items: lineItems.map(li => ({ description: li.description, amount: Number(li.amount || 0) })),
+        description: combinedDesc || null,
+        amount: total || null,
+      })
+      .eq('id', id)
+      .select('*, services(id, name)')
+      .single()
+    if (data) setQuote(data)
+    setEditSaving(false)
+    setShowEditModal(false)
+  }
+
   if (loading) {
     return (
       <>
@@ -272,7 +316,14 @@ Beezkneez Lawns & Property Care`
 
       {/* Quote Details */}
       <div className="dash-section">
-        <h2 className="dash-section-title">Quote Details</h2>
+        <div className="dash-section-header">
+          <h2 className="dash-section-title">Quote Details</h2>
+          {showActions && (
+            <button className="dash-btn-secondary" onClick={openEditModal} style={{ fontSize: '0.85rem' }}>
+              <i className="fa-solid fa-pen"></i> Edit
+            </button>
+          )}
+        </div>
         <div className="dash-contact-details">
           <div className="dash-contact-row">
             <i className="fa-solid fa-user"></i>
@@ -314,20 +365,53 @@ Beezkneez Lawns & Property Care`
             <span>{serviceName}</span>
           </div>
           <div className="dash-contact-row">
-            <i className="fa-solid fa-dollar-sign"></i>
-            <span>{quote.amount ? formatCurrency(quote.amount) : '—'}</span>
-          </div>
-          <div className="dash-contact-row">
             <i className="fa-solid fa-calendar"></i>
             <span>{formatDate(quote.created_at)}</span>
           </div>
-          {quote.description && (
+        </div>
+
+        {/* Line Items Table */}
+        {(quote.line_items || []).length > 0 ? (
+          <div style={{ marginTop: 16 }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: '8px 0', borderBottom: '2px solid #e0e0e0', fontWeight: 600 }}>Description</th>
+                  <th style={{ textAlign: 'right', padding: '8px 0', borderBottom: '2px solid #e0e0e0', fontWeight: 600, width: 100 }}>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(quote.line_items || []).map((item, i) => (
+                  <tr key={i}>
+                    <td style={{ padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>{item.description || '—'}</td>
+                    <td style={{ padding: '8px 0', borderBottom: '1px solid #f0f0f0', textAlign: 'right' }}>{formatCurrency(item.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ textAlign: 'right', padding: '10px 0', fontWeight: 700, fontSize: '1rem' }}>
+              Total: {formatCurrency(quote.amount)}
+            </div>
+          </div>
+        ) : quote.description ? (
+          <div className="dash-contact-details" style={{ marginTop: 8 }}>
             <div className="dash-contact-row">
               <i className="fa-solid fa-align-left"></i>
               <span>{quote.description}</span>
             </div>
-          )}
-        </div>
+            <div className="dash-contact-row">
+              <i className="fa-solid fa-dollar-sign"></i>
+              <span>{quote.amount ? formatCurrency(quote.amount) : '—'}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="dash-contact-details" style={{ marginTop: 8 }}>
+            <div className="dash-contact-row">
+              <i className="fa-solid fa-dollar-sign"></i>
+              <span>{quote.amount ? formatCurrency(quote.amount) : '—'}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Notes */}
@@ -431,6 +515,131 @@ Beezkneez Lawns & Property Care`
                 <button type="button" className="dash-btn-secondary" onClick={() => setShowEmailModal(false)}>Cancel</button>
                 <button type="submit" className="dash-action-btn" disabled={sending}>
                   <i className="fa-solid fa-paper-plane"></i> {sending ? 'Sending...' : 'Send'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEditModal && editForm && (
+        <div className="dash-modal-overlay" onClick={() => setShowEditModal(false)}>
+          <div className="dash-modal" onClick={e => e.stopPropagation()}>
+            <div className="dash-modal-header">
+              <h3>Edit Quote</h3>
+              <button className="dash-modal-close" onClick={() => setShowEditModal(false)}>
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <form onSubmit={handleEditSave}>
+              <div className="dash-form-group">
+                <label>Contact Name *</label>
+                <input
+                  type="text"
+                  value={editForm.contact_name}
+                  onChange={e => setEditForm({ ...editForm, contact_name: e.target.value })}
+                  required
+                />
+              </div>
+              <div className="dash-form-row">
+                <div className="dash-form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={editForm.contact_email}
+                    onChange={e => setEditForm({ ...editForm, contact_email: e.target.value })}
+                  />
+                </div>
+                <div className="dash-form-group">
+                  <label>Phone</label>
+                  <input
+                    type="tel"
+                    value={editForm.contact_phone}
+                    onChange={e => setEditForm({ ...editForm, contact_phone: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="dash-form-group">
+                <label>Address</label>
+                <AddressAutocomplete
+                  value={editForm.contact_address}
+                  onChange={address => setEditForm({ ...editForm, contact_address: address })}
+                />
+              </div>
+              <div className="dash-form-group">
+                <label>Service</label>
+                <select
+                  value={editForm.service_id}
+                  onChange={e => setEditForm({ ...editForm, service_id: e.target.value })}
+                >
+                  <option value="">Select service...</option>
+                  {services.map(s => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="dash-form-group">
+                <label>Line Items</label>
+                {editForm.line_items.map((item, i) => (
+                  <div key={i} className="dash-form-row" style={{ marginBottom: 8, alignItems: 'flex-end' }}>
+                    <div className="dash-form-group" style={{ flex: 2, marginBottom: 0 }}>
+                      {i === 0 && <label style={{ fontSize: '0.75rem', color: '#888' }}>Description</label>}
+                      <input
+                        type="text"
+                        value={item.description}
+                        onChange={e => {
+                          const items = [...editForm.line_items]
+                          items[i] = { ...items[i], description: e.target.value }
+                          setEditForm({ ...editForm, line_items: items })
+                        }}
+                        placeholder="Description"
+                      />
+                    </div>
+                    <div className="dash-form-group" style={{ minWidth: 100, marginBottom: 0 }}>
+                      {i === 0 && <label style={{ fontSize: '0.75rem', color: '#888' }}>Amount</label>}
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={item.amount}
+                        onChange={e => {
+                          const items = [...editForm.line_items]
+                          items[i] = { ...items[i], amount: e.target.value }
+                          setEditForm({ ...editForm, line_items: items })
+                        }}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    {editForm.line_items.length > 1 && (
+                      <button
+                        type="button"
+                        className="dash-btn-icon dash-btn-icon--danger"
+                        onClick={() => {
+                          const items = editForm.line_items.filter((_, idx) => idx !== i)
+                          setEditForm({ ...editForm, line_items: items })
+                        }}
+                        style={{ width: 28, height: 28, fontSize: '0.7rem', marginBottom: 2 }}
+                      >
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="dash-btn-secondary"
+                  onClick={() => setEditForm({ ...editForm, line_items: [...editForm.line_items, { description: '', amount: '' }] })}
+                  style={{ marginTop: 4, fontSize: '0.85rem' }}
+                >
+                  + Add Line Item
+                </button>
+                <div style={{ textAlign: 'right', marginTop: 8, fontWeight: 600, fontSize: '0.95rem' }}>
+                  Total: {formatCurrency(editForm.line_items.reduce((sum, li) => sum + Number(li.amount || 0), 0))}
+                </div>
+              </div>
+              <div className="dash-modal-actions">
+                <button type="button" className="dash-btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+                <button type="submit" className="dash-action-btn" disabled={editSaving}>
+                  {editSaving ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </form>

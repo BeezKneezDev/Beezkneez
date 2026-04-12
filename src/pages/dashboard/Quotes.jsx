@@ -23,7 +23,7 @@ function badgeClass(status) {
   return `dash-badge ${map[status] || ''}`
 }
 
-const emptyForm = { contact_name: '', contact_email: '', contact_phone: '', contact_address: '', service_id: '', status: 'pending', description: '', amount: '' }
+const emptyForm = { contact_name: '', contact_email: '', contact_phone: '', contact_address: '', service_id: '', status: 'pending', line_items: [{ description: '', amount: '' }] }
 
 export default function Quotes() {
   const navigate = useNavigate()
@@ -81,6 +81,10 @@ export default function Quotes() {
     e.preventDefault()
     setSaving(true)
 
+    const lineItems = form.line_items.filter(li => li.description || li.amount)
+    const total = lineItems.reduce((sum, li) => sum + Number(li.amount || 0), 0)
+    const combinedDesc = lineItems.map(li => li.description).filter(Boolean).join(', ')
+
     const payload = {
       contact_name: form.contact_name,
       contact_email: form.contact_email || null,
@@ -88,8 +92,9 @@ export default function Quotes() {
       contact_address: form.contact_address || null,
       service_id: form.service_id || null,
       status: form.status,
-      description: form.description || null,
-      amount: form.amount ? Number(form.amount) : null,
+      line_items: lineItems.map(li => ({ description: li.description, amount: Number(li.amount || 0) })),
+      description: combinedDesc || null,
+      amount: total || null,
     }
 
     const quoteNumber = await generateQuoteNumber()
@@ -243,22 +248,62 @@ export default function Quotes() {
                 </div>
               </div>
               <div className="dash-form-group">
-                <label>Description</label>
-                <textarea
-                  value={form.description}
-                  onChange={e => setForm({ ...form, description: e.target.value })}
-                  rows={3}
-                />
-              </div>
-              <div className="dash-form-group">
-                <label>Amount</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={form.amount}
-                  onChange={e => setForm({ ...form, amount: e.target.value })}
-                  placeholder="0.00"
-                />
+                <label>Line Items</label>
+                {form.line_items.map((item, i) => (
+                  <div key={i} className="dash-form-row" style={{ marginBottom: 8, alignItems: 'flex-end' }}>
+                    <div className="dash-form-group" style={{ flex: 2, marginBottom: 0 }}>
+                      {i === 0 && <label style={{ fontSize: '0.75rem', color: '#888' }}>Description</label>}
+                      <input
+                        type="text"
+                        value={item.description}
+                        onChange={e => {
+                          const items = [...form.line_items]
+                          items[i] = { ...items[i], description: e.target.value }
+                          setForm({ ...form, line_items: items })
+                        }}
+                        placeholder="Description"
+                      />
+                    </div>
+                    <div className="dash-form-group" style={{ minWidth: 100, marginBottom: 0 }}>
+                      {i === 0 && <label style={{ fontSize: '0.75rem', color: '#888' }}>Amount</label>}
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={item.amount}
+                        onChange={e => {
+                          const items = [...form.line_items]
+                          items[i] = { ...items[i], amount: e.target.value }
+                          setForm({ ...form, line_items: items })
+                        }}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    {form.line_items.length > 1 && (
+                      <button
+                        type="button"
+                        className="dash-btn-icon dash-btn-icon--danger"
+                        onClick={() => {
+                          const items = form.line_items.filter((_, idx) => idx !== i)
+                          setForm({ ...form, line_items: items })
+                        }}
+                        style={{ width: 28, height: 28, fontSize: '0.7rem', marginBottom: 2 }}
+                      >
+                        <i className="fa-solid fa-trash"></i>
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="dash-btn-secondary"
+                  onClick={() => setForm({ ...form, line_items: [...form.line_items, { description: '', amount: '' }] })}
+                  style={{ marginTop: 4, fontSize: '0.85rem' }}
+                >
+                  + Add Line Item
+                </button>
+                <div style={{ textAlign: 'right', marginTop: 8, fontWeight: 600, fontSize: '0.95rem' }}>
+                  Total: {formatCurrency(form.line_items.reduce((sum, li) => sum + Number(li.amount || 0), 0))}
+                </div>
               </div>
               <div className="dash-modal-actions">
                 <button type="button" className="dash-btn-secondary" onClick={closeModal}>Cancel</button>

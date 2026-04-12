@@ -17,12 +17,36 @@ serve(async (req) => {
 
     const EMAIL_OVERRIDE = Deno.env.get('EMAIL_OVERRIDE')
 
-    const { to, subject, body } = await req.json()
+    const { to, subject, body, line_items } = await req.json()
 
     const recipientEmail = EMAIL_OVERRIDE || to
     if (!recipientEmail) throw new Error('No recipient email')
 
     const bodyHtml = body.replace(/\n/g, '<br>')
+
+    let lineItemsHtml = ''
+    if (line_items && line_items.length > 0) {
+      const total = line_items.reduce((sum: number, li: { amount: number }) => sum + Number(li.amount || 0), 0)
+      const rows = line_items.map((li: { description: string; amount: number }) =>
+        `<tr>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0;">${li.description || ''}</td>
+          <td style="padding: 8px 12px; border-bottom: 1px solid #e0e0e0; text-align: right;">$${Number(li.amount || 0).toFixed(2)}</td>
+        </tr>`
+      ).join('')
+
+      lineItemsHtml = `
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0 8px;">
+          <thead>
+            <tr>
+              <th style="text-align: left; padding: 8px 12px; border-bottom: 2px solid #2d5a27; font-weight: 600; color: #333;">Description</th>
+              <th style="text-align: right; padding: 8px 12px; border-bottom: 2px solid #2d5a27; font-weight: 600; color: #333;">Amount</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div style="text-align: right; font-weight: 700; font-size: 1.05rem; padding: 4px 12px;">Total: $${total.toFixed(2)}</div>
+      `
+    }
 
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto 40px; color: #333;">
@@ -31,6 +55,7 @@ serve(async (req) => {
         </div>
         <div style="border: 1px solid #e0e0e0; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;">
           ${bodyHtml}
+          ${lineItemsHtml}
         </div>
       </div>
     `
