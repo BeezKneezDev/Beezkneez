@@ -316,7 +316,7 @@ export async function generateInvoicePdf(invoice: any, customer: any): Promise<U
       color: black,
     })
     payY -= 20
-    page.drawText('Name: Beezkneez Lawns & Property Care', {
+    page.drawText('Name: Byron & Stacey Murray', {
       x: margin + 12, y: payY,
       size: 10,
       font: helvetica,

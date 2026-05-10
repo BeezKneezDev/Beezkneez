@@ -143,7 +143,7 @@ serve(async (req) => {
 
           ${isPaid ? '' : `<div style="background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 6px; padding: 16px; margin: 20px 0;">
             <h3 style="margin-top: 0; font-size: 0.95rem;">Payment Details</h3>
-            <p style="margin: 4px 0;"><strong>Name:</strong> Beezkneez Lawns &amp; Property Care</p>
+            <p style="margin: 4px 0;"><strong>Name:</strong> Byron &amp; Stacey Murray</p>
             <p style="margin: 4px 0;"><strong>Bank:</strong> Kiwibank</p>
             <p style="margin: 4px 0;"><strong>Account:</strong> 38-9024-0138160-00</p>
             <p style="margin: 4px 0;"><strong>Reference:</strong> ${invoice.invoice_number}</p>

@@ -486,7 +486,7 @@ export default function InvoiceDetail() {
           <div className="dash-contact-details">
             <div className="dash-contact-row">
               <i className="fa-solid fa-user"></i>
-              <span><strong>Name:</strong> Beezkneez Lawns & Property Care</span>
+              <span><strong>Name:</strong> Byron & Stacey Murray</span>
             </div>
             <div className="dash-contact-row">
               <i className="fa-solid fa-building-columns"></i>
